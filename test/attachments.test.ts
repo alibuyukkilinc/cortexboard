@@ -73,7 +73,10 @@ test("attachments over REST: upload, list, serve safely, delete; the board card 
     const shotUrl = `http://localhost:4747/api/items/${item.id}/files/${encodeURIComponent("Ekran görüntüsü.png")}`;
     assert.equal(shot.json().file.url, shotUrl);
     assert.ok(listed.some((f: { url: string }) => f.url === shotUrl));
-    assert.ok((await app.inject({ url: `/api/items/${item.id.slice(-6)}`, headers: H() })).json().attachments.some((f: { url: string }) => f.url === shotUrl), "a short id still gives the full one");
+    assert.ok(
+      (await app.inject({ url: `/api/items/${item.id.slice(-6)}`, headers: H() })).json().attachments.some((f: { url: string }) => f.url === shotUrl),
+      "a short id still gives the full one",
+    );
 
     // Served: pictures and text inline, SVG only as a download, never sniffed, never scripted.
     const img = await app.inject({ url: `/api/items/${item.id}/files/${encodeURIComponent("Ekran görüntüsü.png")}`, headers: H() });
