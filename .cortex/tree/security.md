@@ -16,7 +16,7 @@ links:
     - file: src/hub/crypto.ts
     - file: src/store/attachments.ts
     - file: src/backup/routes.ts
-verified_at_commit: 531735dc5d0e419697dbd9241ba9d483cca158c1
+verified_at_commit: 0457b0bc56e87c08b3f05d4c525198eadbdacedc
 id: 01M34Q1CBF3AXG1Q0MKDJYKB6J
 status: active
 updated_by: claude-code-new

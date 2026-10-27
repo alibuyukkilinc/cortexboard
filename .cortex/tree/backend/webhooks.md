@@ -6,7 +6,7 @@ summary: Her aktivite kaydı (AI değişikliği ve nedeni, kayıt açıldı/taş
 links:
   code:
     - file: src/core/webhooks.ts
-verified_at_commit: 531735dc5d0e419697dbd9241ba9d483cca158c1
+verified_at_commit: 0457b0bc56e87c08b3f05d4c525198eadbdacedc
 id: 01M3APS65A23TXWWD40YGH10NN
 status: active
 updated_by: ai-agent

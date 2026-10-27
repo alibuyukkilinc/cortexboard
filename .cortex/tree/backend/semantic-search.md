@@ -9,7 +9,7 @@ links:
     - file: src/search/semantic.ts
     - file: src/search/runtime.ts
     - file: src/search/embedder.ts
-verified_at_commit: 531735dc5d0e419697dbd9241ba9d483cca158c1
+verified_at_commit: 0457b0bc56e87c08b3f05d4c525198eadbdacedc
 id: 01M34QY9CTKEHQ7G89037EAWVN
 status: active
 updated_by: ai-agent

@@ -9,7 +9,7 @@ links:
     - file: src/hub/oauth.ts
     - file: src/hub/mcpHttp.ts
     - file: test/oauth.test.ts
-verified_at_commit: 531735dc5d0e419697dbd9241ba9d483cca158c1
+verified_at_commit: 0457b0bc56e87c08b3f05d4c525198eadbdacedc
 id: 01M34QY9T47QSX4Q0GQ8V6GPEH
 status: active
 updated_by: claude-code-new

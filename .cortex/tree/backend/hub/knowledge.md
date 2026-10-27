@@ -6,7 +6,7 @@ links:
   code:
     - file: src/hub/knowledge.ts
     - file: src/hub/gitSync.ts
-verified_at_commit: 531735dc5d0e419697dbd9241ba9d483cca158c1
+verified_at_commit: 0457b0bc56e87c08b3f05d4c525198eadbdacedc
 id: 01M3PN87Q4VDY0TQCQHP5V6Y67
 status: active
 updated_by: claude-code-new
