@@ -1,0 +1,15 @@
+# Edited by humans only. Cortex enforces these rules and explains violations to AIs.
+type: note
+description: A free-form note attached to a part of the project.
+statuses:
+  - active
+  - archived
+initial: active
+terminal:
+  - archived
+transitions: any
+fields: {}
+example:
+  type: note
+  title: Staging DB is reset every Monday
+  category_path: server

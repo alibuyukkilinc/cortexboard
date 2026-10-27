@@ -1,0 +1,23 @@
+# Cortex project settings. Safe to commit.
+# approval (for AI actors): auto = writes directly, review = writes become drafts a human approves, human_only = AI cannot write.
+# timezone: the zone reports count days in (e.g. Europe/Istanbul).
+project:
+  name: cortex
+port: 4747
+timezone: Europe/Istanbul
+actors:
+  - id: owner
+    kind: human
+  - id: ai-agent
+    kind: ai
+approval:
+  node: auto
+  task: auto
+  issue: auto
+  question: auto
+  note: auto
+  decision: auto
+# An answer an AI quotes from the chat (the client could not ask the person) waits for the person on
+# the board instead of being applied (security review, 2026-09-29).
+chat:
+  relayed: pending

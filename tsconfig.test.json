@@ -1,0 +1,17 @@
+{
+  // Type checking for the web board's tests, the browser flows and the dev scripts (npm run typecheck).
+  // Not built: vitest, Playwright and tsx run these files directly.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": false,
+    "types": ["node"]
+  },
+  "include": ["web/test", "e2e", "scripts/*.ts", "vitest.config.ts", "playwright.config.ts"]
+}

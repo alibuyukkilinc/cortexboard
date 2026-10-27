@@ -1,0 +1,32 @@
+---
+title: Hub yedekleme
+summary: Hub'ın ve projelerin bilgisi şifreli (AES-256-GCM) BunnyCDN ya da
+  Google Drive'a, isteğe bağlı ya da zamanlayıcıyla. Kendi anahtar, panelden
+  indirme ve geri yükleme (hazırla + yeniden başlat), hub'sız proje yedeği.
+links:
+  code:
+    - file: src/hub/backup.ts
+    - file: src/backup
+verified_at_commit: e62c847ba735c3eb43b9abc680fc13cf8c76646e
+id: 01M3PN878H6JV5RQZJ5VGTJY65
+status: active
+updated_by: claude-code-new
+updated_at: 2026-09-29T13:21:47.793Z
+---
+
+## Yedekleme (görev 01M3NQYNRX7X7Z3660KFA2WHZQ; 8293abb, 2. tur e79845e)
+Ortak kod `src/backup/` (hub ve tek proje aynı katmanı kullanır), hub'a özgü kısım `src/hub/backup.ts`.
+- **Arşiv** (`archive.ts`): kendi ustar yazıcısı, gzip, AES-256-GCM (`CXBK1 | salt | iv | tag | gövde`, anahtar scrypt N=2^15). Her zaman şifreli. `SKIP`: `.index`, `backup.secrets.yaml`, `.backup-last.json`, `.secrets.yaml`, `.sessions.json`, `.restore`.
+- **Hub arşivi:** `hub.db` (`VACUUM INTO`), `hub.yaml`, `projects/**` (`.git` dahil), repodaki projelerin `.cortex`'i (`repo-projects/<id>/`), `MANIFEST.json` (`kind: hub`, projeler ve yolları). Dosya adı `cortex-hub-<ISO>.cxbk`.
+- **Sağlayıcılar** (`providers.ts`, `put/list/get/remove`): **Bunny** (`PUT https://[bölge.]storage.bunnycdn.com/<zone>/<path>/<dosya>`, `AccessKey`, `Checksum` SHA-256). **Google Drive**: OAuth cihaz akışı (`POST /device/code`, `POST /token` device_code sonra refresh_token), kapsam `drive.file` (yalnız kendi dosyaları), klasör önce kayıtlı `folder_id`, yoksa adla aranır, yoksa oluşturulur (başka makine aynı hesabı bağlayınca eskileri bulur). Yükleme resumable. Erişim token'ı bellekte önbellekli. `endpoint` ayarı testler için ikisinin de adresini değiştirir. OAuth onay ekranı "Testing"de kalırsa Google girişi 7 günde düşürür: belgeler "In production" der.
+- **Ayarlar** `hub.yaml` → `backup: { provider?: bunny|gdrive, storage_zone, region, folder_id, path, interval_hours, keep, endpoint? }`. `provider` yazılmamışsa Bunny (ilk sürümün kayıtları çalışır). Öbür sağlayıcının ayarı silinmez. Sırlar `backup.secrets.yaml` (0600): `access_key`, `passphrase`, `google_client_id`, `google_client_secret`, `google_refresh_token`; hiçbir uç geri vermez.
+- **Şifreleme anahtarı:** kişi yazabilir (en az 12 karakter, `PASSPHRASE_MIN`) ve değiştirebilir (`passphrase_changed`); boşsa ve kayıtlı yoksa üretilir ve yalnız o cevapta döner. Kayıt her seferinde yeni anahtar üretmez.
+- **Çalıştırma:** `BackupRunner` (`core.ts`) tek seferde bir yedek, sonuç `backup-last.json` (başarısızda `last_ok`), `start()` 10 dakikada bir `interval_hours`'a bakar. `Hub.backups` bunu kullanır.
+- **Uçlar** (`src/backup/routes.ts`, hub'da `/api/admin/backup`, org admin): `GET/PUT`, `POST run`, `GET list`, `GET download/:name` (şifreli dosya, ad `pattern`'e uymalı), `POST restore {name, passphrase?, adopt?}`, `DELETE restore`, `POST google/start`, `POST google/poll`, `DELETE google`. Cihaz kodu sunucuda bekler, tarayıcıya gitmez. Ayrıca `POST /api/admin/restart`.
+- **Panelden geri yükleme (hub):** `stageRestore` yedeği indirir, açar, `hub/hub.db` ve `hub/hub.yaml` var mı bakar, `<hub>/.restore/` altına yazar ve `restore.json` bırakır (panel `pending_restore` görür, anahtar görmez). `hub start` HubStore'u açmadan `applyPendingRestore` çağırır: `.restore` → `<hub>.restoring`, hub klasörü → `<hub>-before-restore-<zaman>` (geri dönüş: adını geri değiştir), gelen `hub/` → hub klasörü. Bu makinenin `host, port, public_url, allowed_hosts, trust_proxy, cookie_secure, backup` ayarları, `backup.secrets.yaml` ve `backup-last.json` korunur. `adopt` ile verilen eski anahtar hub'ın anahtarı olur (yeniden kurulumda anahtar değişmesin). Repodaki projelerin `.cortex`'i `restored-repo-projects/<zaman>/` altına bırakılır, kod klasörüne yazılmaz. Windows'ta eski süreç dosyaları bırakana kadar yeniden adlandırma 20 sn denenir.
+- **Yeniden başlatma:** `hub start` `hub.restarter`'ı kurar; `POST /api/admin/restart` cevaptan sonra uygulamayı ve veritabanını kapatır, `restartSelf` (`src/cli.ts`): Windows'ta `cmd /c start "Cortex Hub" cmd /k node …` ile yeni pencere, diğerlerinde ayrık alt süreç; `INVOCATION_ID` (systemd) ya da `CORTEX_RESTART=exit` varsa yalnız çıkış kodu 75. Yeni süreç `EADDRINUSE`'da 10 sn tekrar dener. Panel `/api/health` cevap verene kadar bekleyip sayfayı yeniler.
+- **Terminalden geri yükleme:** `hub restore <dosya|ad> --to <boş klasör> [--passphrase]`; geri gelen `hub/`'a açıldığı anahtar (depodan geldiyse bu hub'ın depolama anahtarları da) `backup.secrets.yaml` olarak yazılır.
+- **Kod klasörü değiştirme:** `PUT /api/admin/projects/:id/path` (klasör var mı, başka projeye kayıtlı mı; `HubStore.setProjectPath`, `Hub.forget` projeyi kapatır, sonraki istek yeni kökle açar). Panel: Projeler tablosunda klasörün yanında **Değiştir**, bulunamayan klasör kırmızı etiketli. CLI `hub set-path <proje> <klasör>`. Hub'daki bilgi yeri değişmez.
+- **Tek proje (hub'sız):** `src/backup/project.ts` → `projectTarget`: ayar `cortex.config.yaml` → `backup:` (`CortexConfig.backup`), sırlar `.cortex/backup.secrets.yaml`, `.gitignore`'a `backup.secrets.yaml`, `.backup-last.json`, `.restore/` eklenir (init de yazar). Arşiv `cortex/` altında `.cortex` eksi `views`. Varsayılan klasör `cortex/<proje-adı>`, dosya `cortex-<ad>-<ISO>.cxbk`. Geri yükleme yerinde: şimdiki girdiler tek tek `.cortex/.restore/before-<zaman>`'a taşınır (klasörün kendisi açık tutulabildiği için), sonra yazılır, sonra reindex; `.secrets.yaml`, oturumlar, indeks, `views`, bu makinenin `backup:` ayarı korunur. Uçlar `/api/backup` (`buildServer`, yalnız insan aktör), panoda menüde **Yedekleme** (hub'da görünmez). `cortexboard start` zamanlayıcıyı açar. CLI: `cortexboard backup [setup|list|connect-google|restore]`.
+- **Panel:** `web/src/backups.tsx` → `BackupsPanel({ base, kind })` (hub sekmesi ve yerel `ProjectBackupsPage` aynı bileşen): sağlayıcı seçimi, Bunny/Google alanları, anahtar alanı, bağlanma penceresi (kod + adres, `interval` ile yoklar), liste satırında **İndir** ve **Geri yükle**, geri yükleme penceresi (anahtar ve "bu anahtar kullanılsın"), hazır geri yükleme şeridi ve yeniden başlatma.
+- **Testler:** `test/hub-backup.test.ts` ve `test/backup.test.ts` (sahte Bunny ve sahte Google sunucuları: cihaz akışı, klasör, yükleme, budama, adla yeniden bulma; hazırlama + açılışta uygulama; eski anahtarı benimseme; indirme; klasör değiştirme; tek proje yedek/geri yükleme ve `/api/backup`). Gerçek Google hesabıyla ve panelden hub yeniden başlatmayla gerçek bir makinede henüz denenmedi.

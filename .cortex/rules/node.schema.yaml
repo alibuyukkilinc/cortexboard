@@ -1,0 +1,27 @@
+type: node
+fields:
+  path:
+    type: tree_path
+    required: true
+    format: lowercase-dashed segments, e.g. backend/auth/jwt-refresh
+  title:
+    type: string
+    required: true
+    max: 120
+  summary:
+    type: string
+    required: true
+    max: 300
+  body:
+    type: markdown
+  tags:
+    type: string[]
+    max_items: 20
+  links:
+    code: "[{file, lines?}]"
+    items: "[item id]"
+  verified_at_commit:
+    type: git commit hash the knowledge was checked against
+ai_instructions: Write summaries a teammate can act on in one read. Link the
+  code files you describe. Parents must exist before children. Your writes
+  become drafts until a human approves them.

@@ -1,0 +1,538 @@
+{
+  "run_id": "opencode-opencode-mimo-v2.6-flash-free-cortex-2026-09-30T09-46-58",
+  "round": 10,
+  "agent": "opencode",
+  "model": "opencode/mimo-v2.6-flash-free",
+  "model_resolved": "opencode/mimo-v2.6-flash-free",
+  "effort": null,
+  "arm": "cortex",
+  "label": null,
+  "cli": "opencode v2.0.14",
+  "env_effort": null,
+  "fixture": {
+    "repo_head": "89a86bb1b257df87b497b2220d93bc86094a5508",
+    "cortex_version": "0.6.0",
+    "made_at": "2026-09-29T21:02:15.081Z"
+  },
+  "started_at": "2026-09-30T09:47:02.850Z",
+  "finished_at": "2026-09-30T10:18:54.871Z",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Devir alma",
+      "kind": "retrieval",
+      "wall_ms": 232934,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 23,
+      "tool_errors": 0,
+      "cortex_calls": 10,
+      "tools": {
+        "execute": 9,
+        "shell": 14
+      },
+      "turns": 13,
+      "input_tokens": 494889,
+      "cached_input_tokens": 444224,
+      "output_tokens": 7748,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "orta",
+      "confidence": 87,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "HTTP araçlarında sohbetten onay",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "code_context süzgeci",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "cortex_finish",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "bölüm bazlı düğüm düzenleme",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "sembol bağlantıları",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "denemen gerekenler",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "yedekleme 2. tur",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "sıradaki: güvenlik maddeleri / axe",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "tuzak: ortam değişkenleri",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "Özet alındı: `cortex_brief` → `cortex_inbox` → `cortex_pending_approvals`, proje durumu (`.cortex/status.md`), kartlar, son commit'ler ve testlerin bir kısmını bu makinede çalıştırarak doğruladım. Hiçbir dosyaya yazmadım, push ve internet erişimi yok.\n\n1. **Depo durumu:** `main` temiz (commit yok, branch `main`), en son iş `fbe5119` (Reports: simplify period setup) ve `3755978` (Agent notes); bunlardan hemen önce sahibin `6749574` ile **0.6.0 sürümünü** çıkardı, `89a86bb` CI'ı yeşile aldı. Node v24.19.0.\n\n2. **Proje durumu (`status.md`) biraz eskimiş:** 2026-09-29 15:21'de yazılmış, \"son push 506ecee\" diyor ama ondan sonra 5 commit daha atılmış. Yine de ana hat doğru: analiz kartlarının hepsi yapıldı, iş artık **sahibin denemesinde**.\n\n3. **Sahibin incelemesinde bekleyen işler (item durumu `review`, hepsi \"done\"a geçmek için sahibin tek cevabı bekliyor — `pending_approvals: 4`):**\n   - HTTP ile bağlanan araçlarda sohbetten onay (sohbet anahtarı başlığı) — `e1455ef` (`01M3PKJJR…`)\n   - `cortex_code_context` yalnız açık kalemleri ve geçerli kararları döndürsün — `71de131` (`01M3P48200…`)\n   - `cortex_finish`: kayıt + kart cevabı + durum + claim tek çağrıda — `f9dc48c` (`01M3P486P…`)\n   - Bilgi düğümünde bölüm bazlı düzenleme + `backend/hub`'ın 4 alt düğüme bölünmesi — `e62c847` (`01M3P47RTK…`, bu kart benim inbox'ımda yeni cevapla duruyor)\n\n4. **Durum metninde \"incelemede\" denen ama kart bazında artık `done` olan işler** (durum metni güncellenmemiş): sembol bağlantıları (`4e88231`, GPT işi), \"denemen gerekenler\" listesi + cevap biçimi (`eead8d7`), Yedekleme 2. turu (`e79845e`). Bunları review listesine saymadım.\n\n5. **Inbox'ta bekleyen:** 4 kartın hepsi `review` durumundaki işlerin cevapları (nedeni `new_reply`/`assigned_to_group`); ayrıca açık tek issue bana (`@ai`) atanmış durumda.\n\n6. **Sıradaki önerilen işler (durum metnindeki \"Sıradaki\" listesi, ben de katılıyorum):** (a) incelemedeki 4 kartın gerçek hub'da denenmesi — asıl sahip işi; (b) güvenlik kartında işaretsiz kalan 8 madde (ajan başına ayrı token, `chat.relayed: pending`, `SameSite=Strict`, CI'da `npm audit` vb.); (c) **e2e axe kararsızlığı** — açık issue `01M3P47DQFW…` (`@ai`, düşük şiddet; muhtemel sebep PageGate/animasyon bitmeden axe'ın çalışması, hedef 10 art arda 0 düşme); (d) testlerin ortam değişkenlerinden yalıtılması; (e) `frontend/pages` (10,9 KB) ve `backend/items-and-rules` (9,8 KB) bilgi düğümlerinin bölünmesi; (f) ChatGPT bağlayıcıları için OAuth.\n\n7. **⚠️ Bu makinedeki asıl test tuzağı (doğruladım):** kabukta `CORTEX_TRUST_PROXY=1`, `CORTEX_PUBLIC_URL=https://<hub>`, `CORTEX_ALLOWED_HOSTS=…` tanımlı ve bunlar hub hardening testlerini düşürüyor. `test/security-headers.test.ts` bu haliyle **1/3 failing** (`403 !== 200`), aynı komutu değişkenleri sildiğimde **3/3 geçti**. Doğru komut:\n   `env -u CORTEX_TRUST_PROXY -u CORTEX_PUBLIC_URL -u CORTEX_ALLOWED_HOSTS npm test`\n   (Durum metnine göre toplam 3 hub hardening testi etkileniyor; `test/hub.test.ts` de bu ayarlara bakıyor.)\n\n8. **Testle ilgili diğer dikkat:** `npm run e2e` (Playwright) yerelde çalışıyor, chromium kurulmuş ama `e2e/a11y.spec.ts` arada bir renk karşıtlığından düşebiliyor — `--last-failed` ile tekrarlayın, tek düşüşü hata saymayın; `npm run e2e:visual` Linux referanslarıyla (fontlar OS'e göre değişiyor), Windows'ta çalıştırma. Doğrulama için son bir kart cevabı **272 testin** geçtiğini söylüyor; ayrıca `prettier --check` ve `lint` CI kapısı.\n\n9. **İşleyiş kuralları / diğer tuzaklar:** GPT (`chat-gpt-new`) kendi worktree'sinde (`gpt/<iş>` dalı) çalışır, main'e birleştirmeyi `claude-code-new` yapar; MCP araç kodu değişince oturum yeniden açılmalı, hub yeniden derlenip başlatılmalı; `start.cmd` sahibin dosyası (dokunma); `code-structure/gotchas`: FTS5 için Node ≥22.16, numaralı parametre yok, Windows'ta Python CRLF yazıyor.\n\n10. **Varsayım:** \"Review'da bekleyen\" derken item durumunu (`review`) esas aldım; durum metnindeki 7 kart sayısını değil, çünkü 3'ü bu arada `done` olmuş. A"
+    },
+    {
+      "id": "T2",
+      "title": "Neden böyle? (iki karar)",
+      "kind": "history",
+      "wall_ms": 48763,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 4,
+      "tool_errors": 0,
+      "cortex_calls": 0,
+      "tools": {
+        "grep": 2,
+        "read": 2
+      },
+      "turns": 2,
+      "input_tokens": 32040,
+      "cached_input_tokens": 12224,
+      "output_tokens": 319,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "orta",
+      "confidence": 92,
+      "score": {
+        "got": 9,
+        "max": 10,
+        "checks": [
+          {
+            "label": "oxlint: TS 7 / JS API uyumsuzluğu",
+            "kind": "answer",
+            "points": 4,
+            "got": 4
+          },
+          {
+            "label": "node:sqlite: derleme sorunu",
+            "kind": "answer",
+            "points": 3,
+            "got": 3
+          },
+          {
+            "label": "bedel: Node 22.13 / deneysel uyarı / numaralı parametre",
+            "kind": "count",
+            "points": 3,
+            "got": 2,
+            "note": "2/3"
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "**(a) Lint: neden ESLint + typescript-eslint değil de oxlint?**\n\nYol haritası (dilim 8) aslında `eslint.config.js` + `typescript-eslint` diyordu; karar zorunluluktan döndü. typescript-eslint, TypeScript'in **JS API'sine** ihtiyaç duyar (peer: `typescript <6.1`), bu repo ise yerel **TypeScript 7** ile derleniyor ve TS 7'de o API yok. Önemli iki seçenek vardı: (a) yalnız lint için TS 5.x'e dönmek ya da iki TS sürümü birden taşımak, (b) oxlint'in tip bilgili kipi (`--type-aware`, TS 7 üzerine kurulu tsgolint). (b) seçildi çünkü denetim gücünden ödün verilmiyor: `no-floating-promises`, `no-misused-promises`, `await-thenable`, `consistent-type-imports`, `react-hooks` ve dilim 10'daki jsx-a11y kuralları oxlint'te mevcut ve projede gerçekten işe yarıyor (hub.tsx'te iki gerçek bulgu). Karar `01M3837TYN730SW3BRBT5YWDAX` (accepted), bedeli ise ESLint ekosistemindeki bazı eklentilerin yokluğu; TS 8/typescript-eslint desteği gelirse yeniden değerlendirilebilir.\n\n**(b) Arama indeksi: neden `node:sqlite`?**\n\nKoşul basitti: kurulumun **yalnızca Node kurulu her makinede (Windows dahil), derleme olmadan** çalışması — ürün `npx` ile dağıtılıyor. better-sqlite3 daha hızlı ve olgun ama yerel derleme/ikili dosya yüzünden bazı makinelerde kurulumu patlıyor; bu, \"tek bağımlılık Node\" vaadini bozar. `node:sqlite` + FTS5 bunu sıfır derlemeyle çözüyor ve indeks zaten yeniden üretilebilir bir önbellek olduğu için raw performans kaybı kabul edilebilir (ölçüm: 5000 düğümde kelime araması p50 ~23 ms).\n\n**Bedeli:** (1) En düşük Node sürümü **22.16**'ya çıkmış oldu — 22.13–22.15'teki `node:sqlite` FTS5 içermiyordu, `cli.ts`/`runtime-check.ts` sürüm kontrolünü ve \"no such module: fts5\" uyarısını bu yüzden taşıyor. (2) Deneysel uyaran (`ExperimentalWarning`) modül yüklenmeden önce filtreleniyor, dolayısıyla hiçbir şey `node:sqlite`'dan önce yüklenmemeli. (3) Bazı SQL özellikleri yok: `?1` gibi numaralı yer tutucular çalışmıyor (`:ad` / düz `?` gerekli). (4) sqlite-vec yerine bellekte basit tarama kullanıldı (ve ölçüm, gerçek darboğazın arama değil tam `reindex()` olduğunu gösterdi).\n\n*Not: Tüm gerekçeler depodaki karar kartları ve `.cortex` bilgi düğümlerinden; internete çıkmadım.*\n\nZORLUK: orta\nEMİNLİK: 92"
+    },
+    {
+      "id": "T3",
+      "title": "Geçmiş bir performans hatası",
+      "kind": "history",
+      "wall_ms": 171004,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 17,
+      "tool_errors": 1,
+      "cortex_calls": 2,
+      "tools": {
+        "execute": 3,
+        "shell": 7,
+        "grep": 4,
+        "read": 3
+      },
+      "turns": 10,
+      "input_tokens": 247789,
+      "cached_input_tokens": 211840,
+      "output_tokens": 2283,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "orta",
+      "confidence": 85,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "açılışta tam reindex",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          },
+          {
+            "label": "dirFor / mtime / klasör listeleme",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          },
+          {
+            "label": "deleteDoc / FTS",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          },
+          {
+            "label": "şema önbelleği",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "dosyalar: items.ts / db.ts / sync.ts / schema.ts",
+            "kind": "count",
+            "points": 2,
+            "got": 2,
+            "note": "4/4"
+          },
+          {
+            "label": "ölçüm 5,6 → 1,4 sn",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "## Kök nedenler (profil ile doğrulandı)\n\nSorun iki ayrı issue'da toplanmış: `01M3FR5G0XWMKJF8E4DH08KG6C` (açılış 22,5 sn + doğrusal olmayan yazma) ve kardeş `01M3FR582AHFYZ0YWXFTRKEY0S` (rapor 19 sn). Başlangıç ölçümü `scripts/seed-large.ts` + `scripts/perf-baseline.ts` ile alınmış (Windows, Node 24):\n\n1. **Açılış — her seferinde tam yeniden indeksleme.** `Cortex` kurucusu doğrudan `reindex()` çağırıyordu: `.cortex` altındaki her kalem, yanıt, düğüm ve günlük dosyası okunup ayrıştırılıyordu. Seed aynı süreçte indeksi yazıp kapatsa bile yeniden tam kurulum yapılıyordu. (`new Cortex(...)` = 22,5 sn.)\n2. **Yazma — kare büyüme.** Üç kısım:\n   - `ItemStore.dirFor` isabet etmediğinde tüm `items/` klasörünü listeliyordu. Her yeni kalem klasörü eklediği için klasörün mtime'ı değişiyor, bu da **bir sonraki** oluşturmada yine tam listelemeye yol açıyordu → n oluşturma için n listeleme (500 kayıt 4,4 sn; 5.000 kayıt 164 sn → 10 kat veri, 37 kat süre).\n   - `deleteDoc`, FTS'te UNINDEXED olan `kind`/`ref` sütunlarıyla sildiği için **her yazım tüm `docs_fts` tablosunu tarıyordu**.\n   - Sabit ama büyük maliyetler: her çağrıda `loadSchema` ile YAML ayrıştırma (oluşturmanın ~%30'u) ve her commit'te fsync.\n   - Aynı nedenlerle 2.431 kaydın durumunu yanıtla değiştirmek 137 sn sürüyordu.\n3. **Rapor (aynı işin üçüncü belirtisi).** Her kalem/yanıt/düğüm dosyasını diskten okuyor, her olayda şema YAML'ını yeniden ayrıştırıyor ve `Intl` ile gün anahtarı çıkarıyordu → p50 19.410 ms.\n\n## Hangi dosyalarda, nasıl çözüldü\n\nTek seferde commit: **`97f0c38` — \"Big projects are fast again: report, open and writes\"** (27.09.2026).\n\n| Dosya | Değişiklik |\n|---|---|\n| `src/core/cortex.ts` | Kurucudaki `reindex()` → yeni `openIndex()`: damga yoksa tam kurulum, varsa yalnız değişen dosyalar. |\n| `src/core/sync.ts` | `stampFiles()` (`.cortex` altındaki dosyaların `mtime:size` damgası), `changedFiles()` (eklenen/değişen/silinen farkı), `missingRecords()` (kapalıyken silinen kayıtlar indeks↔disk kümesi karşılaştırmasıyla; geri döndürülemezse `rescan`), bunlar `SyncService.run`'a veriliyor. |\n| `src/index/db.ts` | `file_stamps` tablosu; `doc_text.fts_rowid` eklenip `deleteDoc` rowid ile silme (FTS taraması kalktı); `PRAGMA synchronous = NORMAL` (WAL'da güvenli, indeks dosyalardan yeniden kurulur); rapor için `items` sütunları (`severity`, `answered_at/by`, `resolution`), `reportItems()` / `nodeSummaries()` / `indexedRecords()`; `INDEX_VERSION` 9 → ilk açılışta bir kez tam kurulum. |\n| `src/store/items.ts` | Yeni kalem klasörünü kendi eklediğimiz yazma, listeleyip `scannedAt` damgasını ileri taşıyor → n oluşturma için n listeleme yerine en fazla 1-2; dışarıdan eklenen klasör yine bulunuyor. |\n| `src/core/schema.ts` | `loadSchema` ayrıştırmayı `mtime:size` önbelleğinde tutuyor (kural dosyası değişince hemen yeniden okunur). |\n| `src/core/reports.ts` | Diskten okumak yerine indeks; gün sınırları bir kez hesaplanıp ikili arama ile sınıflanıyor; `terminal()` tür/durum başına bir kez soruluyor. |\n| `test/sync.test.ts`, `test/perf.test.ts` | Regresyon testleri: `\"reopening indexes only what changed while Cortex was closed\"`; 500 oluşturmada en fazla 2 klasör listelemesi + elle eklenen klasörün bulunması. (Zaman değil, **sayım** test ediliyor ki CI'da flake olmasın.) |\n\nBilgi tarafı `.cortex/tree/backend/index-search.md` (artımlı güncelleme bölümleri + \"Ölçülen davranış\"), `.cortex/tree/frontend/quality.md` (başlangıç tablosu ve \"sonra 97f0c38 ile düzeldi\" notu) ve `.cortex/tree/backend/reports.md` düğümlerinde güncel; iki issue da kapatılmış.\n\n## Ölçülen iyileşme\n\n1.500 kalem / 600 düğüm / 15.000 aktivite seed'i, Windows, Node 24:\n\n- **Açılış:** 5,6 sn → **1,4 sn** (kalanı Windows'ta ~2.300 klasör listeleme + 3.800 `stat`).\n- **Kalem oluşturma:** büyüyen (500'ölük dilimler 4,6 → 5,5 → 6,6 → 8,4 sn) → **sabit ~2,0-2,9 sn / dilim**, yani **~4 ms/kalem, kayıt sayısından bağımsız**.\n- **Yanıtla durum değiştirme:** 137 sn (2.431 kayıt) → **~9 ms, sabit**.\n- **Rapor** (aynı commit,"
+    },
+    {
+      "id": "T4",
+      "title": "Güncel kural (eskimiş karar tuzağı)",
+      "kind": "current-rule",
+      "wall_ms": 202526,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 24,
+      "tool_errors": 0,
+      "cortex_calls": 2,
+      "tools": {
+        "glob": 1,
+        "grep": 10,
+        "read": 9,
+        "execute": 1,
+        "shell": 3
+      },
+      "turns": 12,
+      "input_tokens": 391345,
+      "cached_input_tokens": 349120,
+      "output_tokens": 5518,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "orta",
+      "confidence": 88,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "doğrudan geçer",
+            "kind": "answer",
+            "points": 4,
+            "got": 4
+          },
+          {
+            "label": "insan onayı: kararlar / kurallar / sorular",
+            "kind": "count",
+            "points": 3,
+            "got": 3,
+            "note": "3/3"
+          },
+          {
+            "label": "gerekçe: 214 taslak, 0 ret",
+            "kind": "answer",
+            "points": 3,
+            "got": 3
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "## Kısa cevap\n\n**Bu projede bir AI'ın bilgi düğümüne (node) yazımı doğrudan geçer — taslakta beklemez.** Gerekçe `.cortex/cortex.config.yaml:14`:\n\n```yaml\napproval:\n  node: auto      # review değil!\n  task: auto\n  issue: auto\n  question: auto\n  note: auto\n  decision: auto\n```\n\n## Mekanizma (kod)\n\nPolitika üç değer alabilir: `auto` = direkt yazar, `review` = `drafts/` altına taslak düşer, `human_only` = AI hiç yazamaz (`src/core/types.ts:7`).\n\nKarar sırası `src/core/cortex.ts:945`:\n\n```ts\nconst policy = actor.policy?.node ?? this.project.config.approval.node ?? \"review\";\n```\n\n- Aktörün rol politikası yoksa (yerel kurulumda yok) → proje politikası (`auto`), o da yoksa **`review`** (yani emniyet varsayılanı taslaktır).\n- `auto` ise satır 976: `writeNode(node)` anında aktifleşir, `applied: true` döner.\n- `review` ise satır 960: taslak kaydedilir (`drafts/<id>.md`), \"A human must approve it before it becomes active\" mesajı döner; aynı düğüme ikinci öneri öncekinin yerine geçer.\n- **Not:** `init` yeni projelerde `node: review` yazar (`src/core/init.ts:168`), README'nin \"Anything an AI writes to knowledge is a **draft** until a person approves it\" cümlesi de bu varsayılanı anlatır. Bu depo ise bilinçli olarak `auto`'ya çekilmiş.\n\n## Bu depoda değişikliği `review`'dan `auto`'ya çeviren gerekçe\n\n`50ee58d` commit'i (karar kartlarından çıkan, \"Cortex: decisions on hub knowledge, approvals and rule checks\") açıkça yazıyor:\n\n> \"Knowledge writes by the AI now apply directly here (**approval.node: auto**), since **214 drafts were approved and none rejected**.\"\n\nYani gerekçe: uzun süre taslak akışı işletildi, 214 taslak onaylandı, **hiçbiri reddedilmedi** → insan onayı darboğaz oldu ve bilgi yazımı için kaldırıldı; bkz. `CHANGELOG.md` \"New hub AI agents are Trusted. Their knowledge writes apply directly; 214 drafts approved and none rejected.\"\n\n## Hâlâ insan onayı (veya insana ait) isteyenler\n\n| Ne | Neden / nerede |\n|---|---|\n| **Kurallar (`.cortex/rules`)** | Her zaman `human_only`; brief'te kural: \"Never edit files under .cortex/rules. Rules belong to humans.\" Hub'da `edit_rules` izni hiçbir AI rolünde yok (`src/hub/roles.ts:12-27`). |\n| **Kararın kabul/ret'i (`decision` → `accepted`/`rejected`)** | `human_only_statuses: [\"accepted\",\"rejected\"]` (`src/core/schema.ts:209`); AI yalnızca **önerir** (`decision: auto` önerinin direkt görünmesi demek, kabul değil). |\n| **Tartışmanın `decided` olması** | `human_only_statuses: [\"decided\"]` (`schema.ts:241`); çoğunluk oyu \"proposed\" karar üretir, insan onaylar. |\n| **Görevin `done` olması** | `human_only_statuses: [\"done\"]` (`schema.ts:127`); AI işi `review`'a taşır, insan `done` yapar. |\n| **Bilgi düğümünü silmek** | `src/core/cortex.ts:1003`: \"Only humans can delete knowledge\" → 403. |\n| **Herhangi bir onaylama (approve)** | \"an AI cannot produce a person's approval\" (`src/mcp/approvals.ts:14`); AI hiçbir rolde onaylayamaz. |\n| **`human_only` olan türler** | `cortex.ts:946` / `items.ts:235` → 403 Forbidden. |\n\nEk olarak:\n- AI **kendisi** taslak isteyebilir: `cortex_update_node({ ..., review: true })` (\"Unsure of a write that would apply directly? Pass review: true\", `src/mcp/server.ts:200`).\n- Hub'da rol politikası projeyi ezebilir: `trusted → { node: \"auto\" }` (`roles.ts:26`), varsayılan AI rolü `contributor` ise proje politikasına düşer (init varsayılanında bu taslak demektir).\n- Taslak yolu zorlayıcı: gövde yarıdan fazla kırpılıyorsa `confirm_shrink` istenir (`cortex.ts:919`), riskli taslak (≥5 satır ve >%40 kayıp) toplu onaya girmez (`risky_draft`).\n- `auto` ile bile her yazım gerekçesiyle aktiviteye düşer (`node.updated`), eskime tespiti ve kural denetimi (ruleCheck) devrede kalır.\n\n**Varsayım:** \"bilgi düğümü\" = knowledge node (`node` türü) olarak aldım; cevap HEAD'deki (fbe5119) hâlihâkı yapılandırmaya dayanıyor. Kural koyan bir `.cortex/rules` metni bulamadım; brief'teki global kurallarda onaya dair madde yok. İnternete çıkmadım, git push yapmadım.\n\nZORLUK: orta\nEMİNLİK: 88"
+    },
+    {
+      "id": "T5",
+      "title": "Kod bağlamı (değişiklikten önce)",
+      "kind": "code-context",
+      "wall_ms": 255226,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 18,
+      "tool_errors": 0,
+      "cortex_calls": 14,
+      "tools": {
+        "execute": 7,
+        "glob": 1,
+        "read": 2,
+        "grep": 3,
+        "shell": 5
+      },
+      "turns": 12,
+      "input_tokens": 390338,
+      "cached_input_tokens": 343744,
+      "output_tokens": 2852,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "orta",
+      "confidence": 78,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "saat dilimi kararı",
+            "kind": "answer",
+            "points": 4,
+            "got": 4
+          },
+          {
+            "label": "takvim gününe hizalı / bugün + 6",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          },
+          {
+            "label": "bilinmeyen aktörler / actor_kind",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          },
+          {
+            "label": "performans: indeksten oku / 19 sn",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "## `src/core/reports.ts` — değişiklik öncesi durum\n\n### Dosyayı yöneten kabul edilmiş kararlar\n\n| Karar | Özeti | Bu dosyadaki karşılığı |\n|---|---|---|\n| **`01M34Q58EGE9M7NK9SWM4G7TVD`** (accepted, 2026-09-22, sahibin \"kabul\" cevabı) | **\"Rapor günleri projenin saat diliminde, takvim gününe hizalı\"** — `'7 gün'` = bugün + önceki 6 gün, `cortex.config.yaml → timezone`, yoksa UTC; 7 günlük grafik tam 7 sütun. | `parsePeriod` (satır 29-48), `daily` serisi (100-117) |\n| **`01M34Q58CPNFJGVSM7NNK58C61`** (accepted) | **\"Cortex hiçbir zaman LLM çağırmaz\"** — arama/rapor/eskime hep hesaplanır, aynı girdi aynı çıktıyı verir. | Dosyanın 8-9. satırındaki yorum ve genel tasarım |\n| **UI-11 plan kararı `01M3FN2DTCVSN42RX5BWRRRYH7`** (accepted) | Epik tanımı (`- [ ]` kutusu olan arşivsiz kayıt) ve `fields.milestone` alanı. | `epics`/`milesstones` bloğu (258-306) |\n\n### ⚠️ Açık bir bozulma var — en kritik bulgu\n\nSon commit **`fbe5119` \"Reports: simplify period setup\"** tek satırlık bir değişiklikle şunu yapmış:\n\n```diff\n- const tz = this.c.project.config.timezone ?? \"UTC\";\n+ const tz = \"UTC\"; // one zone for every reader; the board converts when it draws\n```\n\nBu, kabul edilmiş karar `01M34Q58EGE9M7NK9SWM4G7TVD`'yu **doğrudan çiğniyor** ve testi **çökertmiş durumda** (doğruladım):\n\n```\nnode --import tsx --test test/reports.test.ts\n→ tests 10 / pass 9 / fail 1\n  \"reports count days in the project's time zone\" → actual \"…(7 gün, UTC)\" beklenen /Europe\\/Istanbul/\n```\n\n`ruleCheck.ts:178` hâlâ `config.timezone ?? \"UTC\"` kullanıyor, yani tutarsızlık dosyalar arası. **Bu bir \"yeni iş\" değil, mevcut hata.** Değişiklik yapacaksan önce bunun bilinçli bir tasarım mı (yorum satırı öyle iddia ediyor) yoksa geri alınmış bir karar mı olduğunu ayırt etmek gerekir — ben **kararın geçerli olduğu, `fbe5119`'ün hatalı olduğu** varsayımıyla ilerliyorum (karar sahibi onaylı, test de onu koruyor). Bu varsayımı açıkça söylüyorum.\n\n### Bilinen tuzaklar / geçmiş hatalar\n\n1. **`01M3FR582AHFYZ0YWXFTRKEY0S` (closed, high)** — Rapor büyük projede 19 sn sürüyordu. Çözüm: **kalem/yanıt/düğüm dosyası OKUMA**, her şey `index.reportItems()` / `index.nodeSummaries()` sütunlarından. `build()` içinde dosyaya inen bir döngü açmak bu hatayı geri getirir (bütçe p95 < 150 ms).\n2. **`01M3P46Y5S7ZT30MC3Z36M1T9Z` (closed, medium, commit 5269221)** — Yapılandırmada olmayan aktörler \"human\" sayılıyordu (chatgpt, antigravity). Artık sıra: kaydın `actor_kind`'i → dönemdeki başka kayıtlar → config → **`unknown`**. `unknown` ne insan ne AI.\n3. **Günlük seri performansı** — gün sınırları bir kez hesaplanır, her kayıt **ikili aramayla** gününü bulur; her kayıt için `Intl` çağırmak raporun kalanından pahalıydı. `terminal()` de (tür,durum) çifti başına bir kez sorulur.\n4. **Açık uçlu dönem (`until` yok)**: `end = now + 1` — aynı milisaniyede yazılan kayıt düşmesin diye (test: satır 15).\n5. **`transition()` / `proposer()`**: eski denetim kayıtlarının özeti `\" (from → to)\"` ve `\"Approved X's\"` kalıbıyla biter; meta yok. Yeni alan eklerken bu geriye uyumluluk çözücülarını bozmamak gerekir.\n6. **İnbox'taki 4 açık kartın hiçbiri bu dosyaya değmiyor** (backend/mcp ve backend/approval dallarında) — bu dosyada bekleyen açık iş yok.\n\n### Bozmaman gereken davranış listesi\n\n- [ ] **Saat dilimi kararı**: `'7d'` = bugün + önceki 6 gün, proje diliminde; grafik tam 7 sütun; DST günleri 23/25 saat; en fazla 366 gün; `since < until` değilse 400 `invalid_period`.\n- [ ] **Yalın tarih** (`2026-09-01`) o günün başı proje diliminde; göreli dönem `startOfDay(addDays(dayKey(end) - (n-1)))` formülüne sadık kalsın.\n- [ ] **LLM yok, sonuç deterministik** — aynı girdi aynı sayıları üretmeli; sayaç dosyadan değil indeksten.\n- [ ] **Performans**: dosya/düğüm/yanıt okuması yok, `terminal()` önbellekli, gün sınırları önceden hesaplı.\n- [ ] **`logged` ≠ `system`**: manşet `totals.activity.logged`; `daily[].ai/human/unknown` yalnız kayıtları, `daily[].system` denetimi sayar.\n- [ ] **`unknown` aktör** ne insan ne AI sayılır; pano"
+    },
+    {
+      "id": "T6",
+      "title": "Kararı ve işi kaydet (yazma)",
+      "kind": "write",
+      "wall_ms": 281014,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 18,
+      "tool_errors": 0,
+      "cortex_calls": 13,
+      "tools": {
+        "execute": 16,
+        "grep": 2
+      },
+      "turns": 12,
+      "input_tokens": 335386,
+      "cached_input_tokens": 300992,
+      "output_tokens": 6217,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "kolay",
+      "confidence": 85,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "karar kaydı (noktalı virgül + BOM)",
+            "kind": "file_any",
+            "points": 4,
+            "got": 4,
+            "note": ".cortex/activity/2026-09-30/ai-agent.jsonl",
+            "raw": 4
+          },
+          {
+            "label": "görev kaydı (CSV işi)",
+            "kind": "file_any",
+            "points": 3,
+            "got": 3,
+            "note": ".cortex/activity/2026-09-30/ai-agent.jsonl",
+            "raw": 3
+          },
+          {
+            "label": "kod yazılmadı (src/ değişmedi)",
+            "kind": "unchanged",
+            "points": 1,
+            "got": 1,
+            "raw": 1
+          },
+          {
+            "label": "nereye kaydettiğini söyledi",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "Yaptıklarım (kod yazılmadı, yalnız kayıt):\n\n**1) Karar kaydı** — `cortex_capture` + `cortex_create_item(type=decision)`\n- Kayıt: **`01M3RWDZDEMZ846J15G995A7TX`** — \"Rapor CSV dışa aktarımında ayraç noktalı virgül (;), dosya başında UTF-8 BOM\"\n- Yer: bilgi dalı **`backend/reports`** (Raporlar), kod bağlantıları: `src/core/reports.ts`, `src/core/reportMarkdown.ts`, `web/src/pages/Reports.tsx`, `src/api/routes.ts`\n- İçerik: kararın tam metni, gerekçe (Türkçe Excel'de virgül ondalık ayracı), teknik karşılığı (`;` ayraç, `EF BB BF` BOM, UTF-8) ve kapsam.\n\n**2) İş (görev) kaydı** — `cortex_create_item(type=task)`\n- Kayıt: **`01M3RWEFPKVDQ218JF2CP3F5TE`** — \"Rapor CSV dışa aktarımı: noktalı virgül ayraç (;) ve UTF-8 BOM\", durum **backlog**, atanan **@ai**, dal `backend/reports`\n- Gövde: kontrol listesi (ayraç, BOM, kodlama, uç nokta/İndirme düğmesi, Türkçe karakter testleri) + karar kartına ve kod dosyalarına bağlantı.\n\n**Bulunabilirlik denendi:** `cortex_search(\"noktalı virgül CSV BOM\")` iki kaydı da ilk sırada döndürüyor; `cortex_code_context(src/core/reports.ts)` kararı ve görevi \"code link\" üzerinden gösteriyor. Ayrıca `cortex_log_activity` ile günlüğe düştüm (`01M3RWF5VY4AX43826NR19Z1HA`).\n\n**Varsayımlar:**\n- Karar `proposed` durumunda görünüyor: `cortex_capture` bu istemci sohbette gösterilemediği için panoda sahibine onay sorusu açtı (`01M3RWAMJPHV97XCXJ0V8GZW16`, 2026-10-01'e kadar geçerli). Sessizliği onay saymadım; karar yine de aranabilir şekilde kayıtlı.\n- Repoda var olan bir CSV dışa aktarım kodu bulamadım (yalnız ekler için MIME tanımı var), o yüzden iş \"yeni ekleme\" olarak yazıldı ve dal `backend/reports` seçildi.\n- Ortak proje durumunu (`cortex_update_status`) başka bir ajanın yazdığı metni silmemek için değiştirmedim. İnternete çıkmadım, git push yapmadım.\n\nZORLUK: kolay\nEMİNLİK: 85"
+    },
+    {
+      "id": "T7",
+      "title": "Hata düzelt ve kaydet",
+      "kind": "fix",
+      "wall_ms": 608568,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 38,
+      "tool_errors": 0,
+      "cortex_calls": 9,
+      "tools": {
+        "grep": 6,
+        "shell": 17,
+        "execute": 8,
+        "read": 5,
+        "edit": 2
+      },
+      "turns": 30,
+      "input_tokens": 1339486,
+      "cached_input_tokens": 1276288,
+      "output_tokens": 13692,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "kolay",
+      "confidence": 92,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "test/reports.test.ts geçiyor",
+            "kind": "cmd",
+            "points": 4,
+            "got": 4,
+            "note": "exit 0",
+            "raw": 4
+          },
+          {
+            "label": "gizli kontrol: rapor proje saat dilimini kullanıyor",
+            "kind": "hidden",
+            "points": 2,
+            "got": 2,
+            "note": "pass",
+            "raw": 2
+          },
+          {
+            "label": "src/core/reports.ts değişti",
+            "kind": "changed",
+            "points": 1,
+            "got": 1,
+            "raw": 1
+          },
+          {
+            "label": "mevcut testler korundu (satır silinmedi; yeni test eklemek serbest)",
+            "kind": "no_removals",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "iş kayda geçti (kod dışı bir kayıt)",
+            "kind": "record",
+            "points": 2,
+            "got": 2,
+            "note": ".cortex/status.md",
+            "raw": 2
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "## Yapılan iş\n\n### 1) Kök neden\n`git show fbe5119` → commit mesajı *\"Reports: simplify period setup\"*, değişen tek satır:\n\n```diff\n-    const tz = this.c.project.config.timezone ?? \"UTC\";\n+    const tz = \"UTC\"; // one zone for every reader; the board converts when it draws\n```\n\n`src/core/reports.ts` içinde `ReportService.build` böylece projenin saat dilimini yok saymaya başladı. Oysa kabul edilmiş karar `01M34Q58EGE9M7NK9SWM4G7TVD` (\"Rapor günleri projenin saat diliminde, takvim gününe hizalı\") ve `CORTEX_SPEC.md` tam tersini söylüyor.\n\nEtkisi: periyot başlangıcı (`parsePeriod`), `daily[].date` sütunları, `today` ve markdown'daki tarihler UTC'ye göre hesaplanıyordu. İstanbul = UTC+3 olduğu için **21:00–24:00 UTC arası (= İstanbul 00:00–03:00) yapılan iş bir önceki güne** düşüyordu — kullanıcının 01:30 şikâyeti birebir bu.\n\n### 2) Düzeltme (`src/core/reports.ts`)\n```ts\n// The project's zone decides which calendar day an entry belongs to: work logged at 01:30 in\n// Europe/Istanbul is that day, not the previous one. ...\nconst tz = this.c.project.config.timezone ?? \"UTC\";\n```\n`ruleCheck.ts` zaten doğru okuyordu, `reportMarkdown.ts` `period.timezone` kullanıyor, web tarafı gün anahtarlarını olduğu gibi çiziyor — başka yerde değişiklik gerekmedi.\n\n### 3) Testler\n- Mevcut testler **hiç değiştirilmedi**. Düzeltmeden önce `test/reports.test.ts` → `assert.match(reportToMarkdown(r, \"tr\"), /Europe\\/Istanbul/)` zaten fail ediyordu (düzeltmeden sonra 11/11 geçiyor).\n- Şikâyeti **saatin hangi saatte çalıştığından bağımsız** yakalaması için yeni bir regresyon testi eklendi (`mock.timers` ile saat 2026-09-21T22:30Z = İstanbul 01:30). Kodu geçici olarak stash'leyip geri alarak testin **hatalı kodda fail, düzeltmede geçtiğini** doğruladım.\n- `npm run typecheck` ✅ · `npm run lint` ✅ · prettier ✅\n- `npm test`: **280/285 geçti**. 4 hata (`test/hub.test.ts` ×3 + `test/security-headers.test.ts` ×1) bu makinedeki `CORTEX_TRUST_PROXY`/`CORTEX_ALLOWED_HOSTS` ortam değişkenlerinden; değişikliğimi stash'leyip temiz ağaçta da aynı 4 testin düştüğünü doğruladım — benim dışımda mevcut.\n\n### 4) Kayıtlar (Cortex)\n- `cortex_log_activity` → `01M3RWZ7A6JYJDZR83PBVABWFP`: ne yapıldı, neden (fbe5119 regresyonu), dosyalar, karar verdikleri: saat dilimi kararı **followed**, \"LLM çağırmaz\" kararı **n/a**.\n- `backend/reports` düğümüne \"saat diliminin kaynağı + regresyon notu\" eklendi.\n- Proje durumu (`cortex_update_status`) yeniden yazıldı: düzeltme, test sonucu, sıradaki adım.\n\n**Varsayımlar (soru soramadığım için):** davranış taahhüdünü spec + kabul edilmiş karardan aldım; değişiklikleri **commit etmedim** (sadece çalışma ağacı + Cortex kaydı), push ve internet erişimi yoktu.\n\nZORLUK: kolay\nEMİNLİK: 92"
+    },
+    {
+      "id": "T8",
+      "title": "Süreklilik (yeni oturum, yalnız kayıtlardan)",
+      "kind": "continuity",
+      "wall_ms": 101913,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 10,
+      "tool_errors": 0,
+      "cortex_calls": 0,
+      "tools": {
+        "execute": 7,
+        "shell": 3
+      },
+      "turns": 7,
+      "input_tokens": 174727,
+      "cached_input_tokens": 144192,
+      "output_tokens": 1272,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "orta",
+      "confidence": 88,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "CSV kararı: ; + BOM",
+            "kind": "count",
+            "points": 3,
+            "got": 3,
+            "note": "2/2"
+          },
+          {
+            "label": "gerekçe: Türkçe Excel / ondalık",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "düzeltilen hata: saat dilimi",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          },
+          {
+            "label": "dosya: reports.ts",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          },
+          {
+            "label": "açık iş: CSV görevi",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "## Bugün (2026-09-30) önceki oturumlarda yapılanlar\n\nKaynaklar: `cortex_brief` / `cortex_inbox` / `cortex_search`, `.cortex/` kayıtları ve git durumu (değişiklikleri okudum, push yapmadım).\n\n### (a) Rapor CSV dışa aktarımı kararı\n- **Karar kaydı:** `01M3RWDZDEMZ846J15G995A7TX` — *\"Rapor CSV dışa aktarımında ayraç noktalı virgül (;), dosya başında UTF-8 BOM\"*, bugün 10:05'te açıldı, durumu **`proposed`** (insan onayı bekliyor, `@humans`).\n- **İçerik:** Alan ayracı `,` değil **`;`**, dosyanın ilk baytı **UTF-8 BOM (`EF BB BF`)**, kodlama UTF-8.\n- **Gerekçe (kayıttaki tam ifade):** Proje sahibi bugün verdi — *\"ayırıcı noktalı virgül olacak, çünkü Türkçe Excel virgülü ondalık ayırıcı sayıyor; dosyanın başına UTF-8 BOM eklenecek.\"* Açıklama: Türkçe Excel'de ondalık ayracı virgül (1.234,56); virgül ayraçlı CSV'de Excel hem ayracı hem ondalığı aynı sembölle karıştırınca sütunlar kayıyor. `;` + BOM ile dosya çift tıklayınca doğru sütunlarla açılıyor.\n- **Kapsam:** Henüz yazılmamış olacak CSV dışa aktarımı; ilgili dosyalar `src/core/reports.ts`, `src/core/reportMarkdown.ts`, `web/src/pages/Reports.tsx`, `src/api/routes.ts`.\n\n### (b) Düzeltilen hata\n- **Hata:** Rapor günleri sabit `\"UTC\"` sayılıyordu; proje `Europe/iİstanbul` iken gece **01:30'da** yapılan iş raporda bir önceki güne düşüyordu. Sabit `\"UTC\"` değeri commit **`fbe5119` \"Reports: simplify period setup\"** ile girmişti; kabul edilmiş karar `01M34Q58EGE9M7NK9SWM4G7TVD` (rapor günleri projenin saat diliminde) bunu ihlal ediyordu.\n- **Dosya:** **`src/core/reports.ts`** — `ReportService.build` içinde `const tz = \"UTC\"` satırı, `this.c.project.config.timezone ?? \"UTC\"` ile değiştirildi (yorumla gerekçe de yazılmış).\n- **Test:** `test/reports.test.ts`'e sabit saatli yeni test eklendi: 2026-09-21 22:30 UTC = 2026-09-22 01:30 İstanbul kaydı `\"2026-09-22\"` sütununa düşüyor.\n- **Kayıt:** `01M3RWZ7A6JYJDZR83PBVABWFP` (action: `fix`, bugün 10:15). **Dikkat:** Bu düzeltme çalışma ağacında, henüz commit edilmedi (`git status`: `src/core/reports.ts` ve `test/reports.test.ts` modified; `.cortex/status.md`, `.cortex/tree/backend/reports.md` de değişmiş).\n\n### (c) Açılıp henüz yapılmamış iş\n- **Görev `01M3RWEFPKVDQ218JF2CP3F5TE` — \"Rapor CSV dışa aktarımı: noktalı virgül ayraç (;) ve UTF-8 BOM\"**, durum **`backlog`**, `@ai` atanmış, bugün 10:06'da açılmış. Kartın son satırı açıkça diyor: *\"Kod bu kart açılırken yazılmadı; yalnız iş纪录 kaydı.\"* → yani CSV üretici, BOM, uç nokta/indirme, raporlar sayfası düğmesi ve testlerin hiçbiri yazılmadı (liste kartta madde madde duruyor).\n- Buna ek, düzeltilen saat dilimi düzeltmesi **commit edilmedi**; onay bekleyen açık bir adımla (karar `proposed`) duruyor.\n\n**Not (varsayım):** Günlük activity kaydı bugün için tek kayıt gösteriyor (`since: 2026-09-30` araması); \"önceki oturum bugün\" derken bugünün (30 Eylül) kayıtlarını kastettiğini varsaydım. Dün akşamı (29 Eylül, `fbe5119` dahil) bugüne bağlamadım.\n\nZORLUK: orta\nEMİNLİK: 88"
+    }
+  ]
+}

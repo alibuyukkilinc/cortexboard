@@ -1,0 +1,81 @@
+# Edited by humans only. Cortex enforces these rules and explains violations to AIs.
+type: issue
+description: A bug or problem that needs fixing.
+statuses:
+  - open
+  - in_progress
+  - review
+  - closed
+initial: open
+terminal:
+  - closed
+transitions:
+  open:
+    - in_progress
+    - closed
+  in_progress:
+    - review
+    - open
+    - closed
+  review:
+    - closed
+    - in_progress
+  closed:
+    - open
+category_required: true
+fields:
+  severity:
+    type: enum
+    values:
+      - low
+      - medium
+      - high
+      - critical
+    required: true
+  steps:
+    type: text
+    description: How to reproduce
+  expected:
+    type: text
+  actual:
+    type: text
+  environment:
+    type: string
+    max: 200
+reply:
+  fields:
+    resolution:
+      type: enum
+      values:
+        - fixed
+        - wontfix
+        - needs_info
+        - duplicate
+        - cannot_reproduce
+    commits:
+      type: list
+      of: commit
+      max: 20
+    files:
+      type: list
+      of: string
+      max: 50
+  require_when:
+    - when:
+        resolution: fixed
+      require:
+        - commits
+        - files
+      message: A 'fixed' resolution must list the commits and changed files.
+ai_instructions: When you fix an issue, reply with resolution 'fixed', the
+  commit hashes and changed files, and move it to 'review'. If you are not sure
+  about the cause, reply with 'needs_info' or open a question instead of
+  guessing.
+example:
+  type: issue
+  title: Login returns 500 on wrong password
+  category_path: backend
+  body: Seen in production logs since 2026-09-20.
+  fields:
+    severity: high
+    steps: POST /login with a wrong password

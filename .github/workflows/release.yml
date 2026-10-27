@@ -1,0 +1,54 @@
+# Pushing a tag like v0.2.0 publishes that version: the full CI matrix first, then npm (with provenance)
+# and a GitHub release whose notes are that version's CHANGELOG section.
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write # create the GitHub release
+      id-token: write # npm provenance: the package is signed as built by this workflow
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - name: The tag matches package.json
+        run: |
+          want="v$(node -p "require('./package.json').version")"
+          if [ "$want" != "$GITHUB_REF_NAME" ]; then echo "Tag $GITHUB_REF_NAME, but package.json says $want."; exit 1; fi
+      - name: Release notes from CHANGELOG.md
+        run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" > release-notes.md
+      # prepublishOnly runs typecheck, lint, tests, build and the smoke test once more on this machine.
+      # Viewing a workflow log needs a signed-in GitHub account, so a refusal from npm (a bad token, a
+      # name the registry will not take) is repeated as an annotation: those are on the run page and in
+      # the public checks API, where anyone watching the release can read them.
+      - name: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -o pipefail
+          if npm publish --provenance --access public 2>&1 | tee npm-publish.log; then exit 0; fi
+          code=$(sed -n 's/^npm error code //p' npm-publish.log | head -1)
+          why=$(grep -iE '^npm (error|ERR!)' npm-publish.log | grep -viE 'code |errno |A complete log|^npm error$' | head -3 | paste -sd ' ' - | cut -c1-600)
+          echo "::error title=npm publish failed${code:+ ($code)}::${why:-npm publish exited non-zero; see the log}"
+          exit 1
+      - name: GitHub release
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file release-notes.md --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}

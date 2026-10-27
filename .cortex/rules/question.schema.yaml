@@ -1,0 +1,37 @@
+# Edited by humans only. Cortex enforces these rules and explains violations to AIs.
+type: question
+description: A question between humans and AIs. Assign it to an actor, '@humans' or '@ai'.
+statuses:
+  - open
+  - answered
+  - closed
+initial: open
+terminal:
+  - closed
+transitions:
+  open:
+    - answered
+    - closed
+  answered:
+    - closed
+    - open
+  closed:
+    - open
+fields:
+  blocking:
+    type: boolean
+    description: true if the asker cannot continue until this is answered
+reply:
+  on_reply:
+    - from: open
+      by: not_author
+      to: answered
+ai_instructions: Ask when search does not answer you; do not assume. While a
+  blocking question you asked is open, do not work around it. When your question
+  is answered, close it.
+example:
+  type: question
+  title: Should guest checkout create an account?
+  assignee: "@humans"
+  fields:
+    blocking: true

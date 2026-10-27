@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "cortex": {
+      "command": "node",
+      "args": [
+        "--import",
+        "tsx",
+        "src/cli.ts",
+        "mcp",
+        "--actor",
+        "ai-agent"
+      ]
+    }
+  }
+}

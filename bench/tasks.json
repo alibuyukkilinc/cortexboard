@@ -1,0 +1,314 @@
+{
+  "round": 10,
+  "title": "Çok oturumlu iş akışı: devir alma, geçmiş, güncel kural, yazma, hata düzeltme, süreklilik",
+  "suffix": "\n\nKurallar: Kullanıcıya soru soramazsın ve onay bekleyemezsin; eksik bilgi olursa makul bir varsayımla ilerle ve bunu söyle. İnternete çıkma, git push yapma. Cevabın en sonuna şu iki satırı ekle:\nZORLUK: kolay | orta | zor\nEMİNLİK: 0-100",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Devir alma",
+      "kind": "retrieval",
+      "prompt": "Bu projede yeni bir oturuma başlıyorsun ve işi önceki ajandan devralıyorsun. Projenin şu anki durumunu 6-10 maddede özetle: sahibin incelemesinde (review) bekleyen işler hangileri (varsa commit kısa kimlikleriyle), sıradaki önerilen işler neler ve bu makinede testleri çalıştırırken dikkat edilmesi gereken bir tuzak var mı?",
+      "key": "Status: 7 kart incelemede — HTTP araçlarında sohbetten onay (e1455ef), cortex_code_context süzgeci (71de131), cortex_finish (f9dc48c), bölüm bazlı düğüm düzenleme (e62c847), sembol bağlantıları (4e88231), denemen gerekenler (eead8d7); yedekleme 2. tur (e79845e). Sıradaki: güvenlik kartının kalan maddeleri, e2e axe kararsızlığı, testlerin ortam değişkeninden yalıtılması, düğüm bölme, OAuth. Tuzak: CORTEX_TRUST_PROXY / CORTEX_PUBLIC_URL / CORTEX_ALLOWED_HOSTS hub testlerini düşürür.",
+      "checks": [
+        {
+          "kind": "answer",
+          "label": "HTTP araçlarında sohbetten onay",
+          "any": ["X-Cortex-Human-Token", "sohbet anahtar", "chat key", "e1455ef", "URL ile bağlan"],
+          "points": 1
+        },
+        {
+          "kind": "answer",
+          "label": "code_context süzgeci",
+          "any": ["code_context", "71de131"],
+          "points": 1
+        },
+        {
+          "kind": "answer",
+          "label": "cortex_finish",
+          "any": ["cortex_finish", "f9dc48c"],
+          "points": 1
+        },
+        {
+          "kind": "answer",
+          "label": "bölüm bazlı düğüm düzenleme",
+          "any": ["bölüm", "section", "e62c847"],
+          "points": 1
+        },
+        {
+          "kind": "answer",
+          "label": "sembol bağlantıları",
+          "any": ["sembol", "symbol", "4e88231"],
+          "points": 1
+        },
+        {
+          "kind": "answer",
+          "label": "denemen gerekenler",
+          "any": ["denemen gerekenler", "to test", "eead8d7"],
+          "points": 1
+        },
+        {
+          "kind": "answer",
+          "label": "yedekleme 2. tur",
+          "any": ["yedekleme", "backup", "e79845e"],
+          "points": 1
+        },
+        {
+          "kind": "answer",
+          "label": "sıradaki: güvenlik maddeleri / axe",
+          "any": ["güvenlik", "axe", "npm audit", "OAuth"],
+          "points": 1
+        },
+        {
+          "kind": "answer",
+          "label": "tuzak: ortam değişkenleri",
+          "any": ["CORTEX_TRUST_PROXY", "CORTEX_PUBLIC_URL", "CORTEX_ALLOWED_HOSTS", "ortam değişken"],
+          "points": 2
+        }
+      ]
+    },
+    {
+      "id": "T2",
+      "title": "Neden böyle? (iki karar)",
+      "kind": "history",
+      "prompt": "İki soru, kısa ve gerekçeli cevap ver: (a) Bu projede lint için neden ESLint + typescript-eslint değil de oxlint kullanılıyor? (b) Arama indeksi için neden better-sqlite3 gibi bir paket yerine Node'un yerleşik node:sqlite modülü seçildi ve bu seçimin bedeli ne oldu?",
+      "key": "(a) typescript-eslint TypeScript'in JS API'sine ihtiyaç duyar (peer typescript <6.1); repo TS 7 ile derleniyor, onda o API yok → oxlint tip bilgili kip (tsgolint). (b) better-sqlite3 yerel derleme ister, bazı makinelerde (Windows) derleme hatası; npx'te derleme olmasın. Bedel: en düşük Node 22.13, deneysel uyarı gizleniyor, numaralı parametre gibi bazı SQL özellikleri yok; sqlite-vec yerine bellekte tarama.",
+      "checks": [
+        {
+          "kind": "answer",
+          "label": "oxlint: TS 7 / JS API uyumsuzluğu",
+          "any": ["TypeScript 7", "TS ?7", "<\\s*6\\.1", "JS API", "tsgolint"],
+          "points": 4
+        },
+        {
+          "kind": "answer",
+          "label": "node:sqlite: derleme sorunu",
+          "any": ["derle", "native", "node-gyp", "compil", "yerel eklenti", "prebuilt", "binary"],
+          "points": 3
+        },
+        {
+          "kind": "count",
+          "label": "bedel: Node 22.13 / deneysel uyarı / numaralı parametre",
+          "all": ["22\\.13", "deneysel|experimental", "numaral[ıi] parametre|numbered param|\\?NNN|\\$1"],
+          "points": 3
+        }
+      ]
+    },
+    {
+      "id": "T3",
+      "title": "Geçmiş bir performans hatası",
+      "kind": "history",
+      "prompt": "Bir zamanlar bu projede büyük bir projeyi açmak ~22 saniye sürüyordu ve kayıt oluşturmak kayıt sayısı arttıkça orantısız yavaşlıyordu. Kök nedenler nelerdi, hangi dosyalarda nasıl çözüldü ve ölçülen iyileşme ne oldu?",
+      "key": "Kök: kurucu her açılışta tam reindex; dirFor ıskası + items klasörünün mtime'ı → her oluşturmada tüm klasör yeniden listeleniyordu; deleteDoc FTS'te UNINDEXED sütunla silip tüm tabloyu tarıyordu; her çağrıda şema YAML ayrıştırması, commit başına fsync. Çözüm: src/store/items.ts (önbellek damgası), src/index/db.ts (fts_rowid, synchronous=NORMAL, file_stamps), src/core/cortex.ts + src/core/sync.ts (openIndex, yalnız değişenler), src/core/schema.ts (şema önbelleği). Ölçüm: açılış 5,6 → 1,4 sn (1.500 kalem), oluşturma sabit ~2-3 sn/500.",
+      "checks": [
+        {
+          "kind": "answer",
+          "label": "açılışta tam reindex",
+          "any": ["reindex", "tam (yeniden )?indeks", "yeniden indeksle", "full re-?index", "her açılışta.{0,40}indeks"],
+          "points": 2
+        },
+        {
+          "kind": "answer",
+          "label": "dirFor / mtime / klasör listeleme",
+          "any": ["dirFor", "mtime", "klasör.{0,40}(listele|tara)", "readdir"],
+          "points": 2
+        },
+        {
+          "kind": "answer",
+          "label": "deleteDoc / FTS",
+          "any": ["deleteDoc", "FTS", "UNINDEXED", "rowid"],
+          "points": 2
+        },
+        {
+          "kind": "answer",
+          "label": "şema önbelleği",
+          "any": ["loadSchema", "şema önbel", "schema cache", "şema.{0,30}ayrıştır", "YAML ayrıştır"],
+          "points": 1
+        },
+        {
+          "kind": "count",
+          "label": "dosyalar: items.ts / db.ts / sync.ts / schema.ts",
+          "all": ["items\\.ts", "db\\.ts", "sync\\.ts", "schema\\.ts"],
+          "points": 2
+        },
+        {
+          "kind": "answer",
+          "label": "ölçüm 5,6 → 1,4 sn",
+          "any": ["1[,.]4 ?(sn|s\\b|saniye)", "5[,.]6"],
+          "points": 1
+        }
+      ]
+    },
+    {
+      "id": "T4",
+      "title": "Güncel kural (eskimiş karar tuzağı)",
+      "kind": "current-rule",
+      "prompt": "Bu projede bir AI ajanı bir bilgi düğümüne (knowledge node) yazdığında ne olur: yazım doğrudan mı geçer, yoksa bir insan onaylayana kadar taslak mı kalır? Hangi türler hâlâ insan onayı ister? Bu kuralın gerekçesi ne?",
+      "key": "Güncel karar (01M3MXD1…): AI'ın bilgi yazımları onaysız geçer (hub'da ajan rolü Güvenilir; bu repoda approval: node auto). İnsan onayı kararlar, rules/ ve @humans soruları için kalır. Gerekçe: 30 günde 214 AI taslağı onaylandı, 0 reddedildi; onay adımı bir şey elemiyordu. Eski karar ('insan onaylayana kadar taslak kalır') artık superseded — onu güncel diye vermek yanlış.",
+      "checks": [
+        {
+          "kind": "answer",
+          "label": "doğrudan geçer",
+          "any": ["doğrudan (geçer|yaz)", "onaysız", "taslak (olmadan|kalmaz|olmaz)", "Güvenilir", "trusted", "node: ?auto", "otomatik (geçer|yayın)"],
+          "points": 4,
+          "none": ["doğrudan geçmez", "doğrudan yazım değil", "taslak (olarak )?kal[ıi]r(?!d)", "taslağa düşer"]
+        },
+        {
+          "kind": "count",
+          "label": "insan onayı: kararlar / kurallar / sorular",
+          "all": ["karar", "kural|rules", "soru|question"],
+          "points": 3,
+          "none": ["doğrudan geçmez", "doğrudan yazım değil", "taslak (olarak )?kal[ıi]r(?!d)", "taslağa düşer"]
+        },
+        {
+          "kind": "answer",
+          "label": "gerekçe: 214 taslak, 0 ret",
+          "any": ["214", "0 ret", "hiç(bir)? (taslak )?reddedilme", "elemiyor"],
+          "points": 3
+        }
+      ]
+    },
+    {
+      "id": "T5",
+      "title": "Kod bağlamı (değişiklikten önce)",
+      "kind": "code-context",
+      "prompt": "src/core/reports.ts dosyasında değişiklik yapmak üzeresin, ama henüz kod değiştirme. Başlamadan önce bu dosyayı hangi kabul edilmiş kararlar yönetiyor, dosyayla ilgili bilinen tuzaklar, geçmiş hatalar veya açık işler var mı? Değişiklik yaparken bozmaman gereken davranışlardan kısa bir kontrol listesi çıkar.",
+      "key": "Karar: rapor günleri projenin saat diliminde, takvim gününe hizalı ('7d' = bugün + önceki 6 gün; cortex.config.yaml timezone, yoksa UTC; DST günleri 23/25 saat). Geçmiş: bilinmeyen aktörler insan sayılıyordu → actor_kind / 'unknown'. Performans: rapor büyük projede 19 sn sürüyordu → kalemler indeksten okunur (reportItems). Kontrol listesi bunları korumalı.",
+      "checks": [
+        {
+          "kind": "answer",
+          "label": "saat dilimi kararı",
+          "any": ["saat dilimi", "timezone", "time zone"],
+          "points": 4
+        },
+        {
+          "kind": "answer",
+          "label": "takvim gününe hizalı / bugün + 6",
+          "any": ["takvim", "bugün ?\\+ ?(önceki )?6", "today plus", "7 sütun", "calendar"],
+          "points": 2
+        },
+        {
+          "kind": "answer",
+          "label": "bilinmeyen aktörler / actor_kind",
+          "any": ["bilinmeyen", "unknown", "actor_kind"],
+          "points": 2
+        },
+        {
+          "kind": "answer",
+          "label": "performans: indeksten oku / 19 sn",
+          "any": ["19 (sn|saniye|s\\b)", "reportItems", "indeks(ten)?.{0,60}(oku|dosya)", "performans"],
+          "points": 2
+        }
+      ]
+    },
+    {
+      "id": "T6",
+      "title": "Kararı ve işi kaydet (yazma)",
+      "kind": "write",
+      "prompt": "Proje sahibi şu kararı verdi: \"Rapor CSV dışa aktarımında ayırıcı noktalı virgül (;) olacak, çünkü Türkçe Excel virgülü ondalık ayırıcı sayıyor; dosyanın başına UTF-8 BOM eklenecek.\" Bu kararı, sonraki oturumlarda başka bir AI'ın kolayca bulacağı biçimde projeye kaydet. Ayrıca bunu uygulamak için bir iş (görev) kaydı aç; kodu şimdi yazma. Neyi nereye kaydettiğini kısaca söyle.",
+      "key": "Karar ve görev, projenin kalıcı kaydında (Cortex arm: decision + task item; baseline: repo içinde bir not/karar dosyası + TODO) bulunmalı; src/ değişmemeli.",
+      "checks": [
+        {
+          "kind": "file_any",
+          "label": "karar kaydı (noktalı virgül + BOM)",
+          "all": ["noktal[ıi] virg[üu]l|semicolon|ayırıcı.{0,30};", "BOM"],
+          "points": 4
+        },
+        {
+          "kind": "file_any",
+          "label": "görev kaydı (CSV işi)",
+          "all": ["CSV", "type: task|görev|todo|yapılacak|\\[ \\]"],
+          "points": 3
+        },
+        {
+          "kind": "unchanged",
+          "label": "kod yazılmadı (src/ değişmedi)",
+          "path": "src",
+          "points": 1
+        },
+        {
+          "kind": "answer",
+          "label": "nereye kaydettiğini söyledi",
+          "any": ["\\.cortex", "cortex_", "\\.md", "karar (kaydı|olarak)", "decision"],
+          "points": 2
+        }
+      ]
+    },
+    {
+      "id": "T7",
+      "title": "Hata düzelt ve kaydet",
+      "kind": "fix",
+      "prompt": "Kullanıcı şikâyeti: \"Projenin saat dilimi Europe/Istanbul olduğu halde, gece 01:30'da yaptığım iş raporda bir önceki güne yazılıyor.\" Hatayı bul ve düzelt, ilgili testleri çalıştır, sonra yaptığın işi projenin kayıtlarına işle (bir sonraki oturum ne yapıldığını ve nedenini görebilmeli). Testi değiştirerek geçirmeye çalışma.",
+      "key": "Ekilmiş hata: src/core/reports.ts → ReportService.build() cortex.config.yaml timezone'u yok sayıp \"UTC\" kullanıyor. Düzeltme: const tz = this.c.project.config.timezone ?? \"UTC\". test/reports.test.ts geçmeli; test dosyası değişmemeli; iş kayda geçmeli.",
+      "checks": [
+        {
+          "kind": "cmd",
+          "label": "test/reports.test.ts geçiyor",
+          "cmd": "node --import tsx --test --test-timeout=60000 test/reports.test.ts",
+          "points": 4
+        },
+        {
+          "kind": "hidden",
+          "label": "gizli kontrol: rapor proje saat dilimini kullanıyor",
+          "points": 2
+        },
+        {
+          "kind": "changed",
+          "label": "src/core/reports.ts değişti",
+          "path": "src/core/reports.ts",
+          "points": 1
+        },
+        {
+          "kind": "no_removals",
+          "label": "mevcut testler korundu (satır silinmedi; yeni test eklemek serbest)",
+          "path": "test/reports.test.ts",
+          "points": 1
+        },
+        {
+          "kind": "record",
+          "label": "iş kayda geçti (kod dışı bir kayıt)",
+          "all": ["saat dilimi|timezone|time zone|Istanbul"],
+          "points": 2
+        }
+      ]
+    },
+    {
+      "id": "T8",
+      "title": "Süreklilik (yeni oturum, yalnız kayıtlardan)",
+      "kind": "continuity",
+      "prompt": "Yeni bir oturumdasın. Bu projede bugün önceki oturumlarda neler yapıldı? Özellikle: (a) rapor CSV dışa aktarımı hakkında hangi karar alındı ve gerekçesi ne, (b) hangi hata düzeltildi, hangi dosyada, (c) açılıp henüz yapılmamış iş hangisi? Yalnızca projenin kayıtlarına ve depoya dayanarak cevap ver, tahmin yürütme.",
+      "key": "(a) noktalı virgül ayırıcı + UTF-8 BOM, Türkçe Excel virgülü ondalık sayıyor; (b) rapor saat dilimi hatası, src/core/reports.ts; (c) CSV dışa aktarımını uygulama görevi açık. T6/T7 başarısızsa bu görev de beklenen biçimde düşer (süreklilik ölçüsü).",
+      "checks": [
+        {
+          "kind": "count",
+          "label": "CSV kararı: ; + BOM",
+          "all": ["noktal[ıi] virg[üu]l|semicolon|[`\"(]s*;s*[`\")]", "BOM"],
+          "points": 3
+        },
+        {
+          "kind": "answer",
+          "label": "gerekçe: Türkçe Excel / ondalık",
+          "any": ["Excel", "ondalık", "decimal"],
+          "points": 1
+        },
+        {
+          "kind": "answer",
+          "label": "düzeltilen hata: saat dilimi",
+          "any": ["saat dilimi", "timezone", "time zone", "Europe/Istanbul"],
+          "points": 2
+        },
+        {
+          "kind": "answer",
+          "label": "dosya: reports.ts",
+          "any": ["reports\\.ts"],
+          "points": 2
+        },
+        {
+          "kind": "answer",
+          "label": "açık iş: CSV görevi",
+          "any": ["CSV.{0,160}(görev|task|iş|açık|yapılmad|bekl)", "(görev|task|açık iş|yapılmad).{0,160}CSV"],
+          "points": 2
+        }
+      ]
+    }
+  ]
+}

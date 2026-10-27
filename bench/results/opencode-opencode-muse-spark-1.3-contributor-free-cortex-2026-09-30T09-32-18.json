@@ -1,0 +1,73 @@
+{
+  "run_id": "opencode-opencode-muse-spark-1.3-contributor-free-cortex-2026-09-30T09-32-18",
+  "round": 10,
+  "agent": "opencode",
+  "model": "opencode/muse-spark-1.3-contributor-free",
+  "model_resolved": "opencode/muse-spark-1.3-contributor-free",
+  "effort": null,
+  "arm": "cortex",
+  "label": null,
+  "cli": "opencode v2.0.14",
+  "env_effort": null,
+  "fixture": {
+    "repo_head": "89a86bb1b257df87b497b2220d93bc86094a5508",
+    "cortex_version": "0.6.0",
+    "made_at": "2026-09-29T21:02:15.081Z"
+  },
+  "started_at": "2026-09-30T09:32:27.112Z",
+  "finished_at": "2026-09-30T09:33:22.889Z",
+  "tasks": [
+    {
+      "id": "T4",
+      "title": "Güncel kural (eskimiş karar tuzağı)",
+      "kind": "current-rule",
+      "wall_ms": 55224,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 7,
+      "tool_errors": 0,
+      "cortex_calls": 3,
+      "tools": {
+        "read": 4,
+        "grep": 1,
+        "execute": 2
+      },
+      "turns": 5,
+      "input_tokens": 135051,
+      "cached_input_tokens": 93508,
+      "output_tokens": 1123,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "kolay",
+      "confidence": 95,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "doğrudan geçer",
+            "kind": "answer",
+            "points": 4,
+            "got": 4
+          },
+          {
+            "label": "insan onayı: kararlar / kurallar / sorular",
+            "kind": "count",
+            "points": 3,
+            "got": 3,
+            "note": "3/3"
+          },
+          {
+            "label": "gerekçe: 214 taslak, 0 ret",
+            "kind": "answer",
+            "points": 3,
+            "got": 3
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "Bu repoda AI ajanının bilgi düğümü yazımı doğrudan geçer, taslak kalmaz.\n\n* ` .cortex/cortex.config.yaml:14 ` → `approval.node: auto`\n* `backend/approval` düğümü: \"AI bilgi yazımları bu repoda ve hub'daki Güvenilir ajanlarda direkt geçer.\"\n* Eski kural (`CORTEX_SPEC.md:171` `node: review`) bu repo için `01M3MXD1644M8SBHHT2RHP8XDB` kararı ile değiştirildi.\n\nİstisna: AI kendisi emin değilse `cortex_update_node(review:true)` / `PUT /node` ile tek yazımı isteğe bağlı taslağa gönderir. Yeni `init` varsayılanı değişmedi: yeni yerel projelerde `node: review`.\n\nHâlâ insan onayı ister:\n\n* Kararlar: öneri `auto` görünür, `accepted/rejected` yalnızca insan.\n* `rules/`: `human_only`, AI yalnızca `@humans`'a soru açarak önerebilir.\n* `@humans` soruları ve düğüm silme yalnızca insan.\n\nGerekçe (`01M3MXD1644M8SBHHT2RHP8XDB`, kabul: 2026-09-28): 30 günde 214 AI taslağı onaylandı, 0 reddedildi; onay adımı elemiyor, sahibe iş çıkarıyor. Kararlarda insan denetimi işliyordu (19 öneri, 1 ret). Geri alma sürüm geçmişi/aktivite ile mümkün. Hub'da karşılığı: yeni ajanlar varsayılan `Güvenilir` (node:auto), var olan ajanı başka projeye eklemek hâlâ `Katkıcı`.\n\nMakul varsayım: soru \"bu proje\"yi sorduğu için bu repo + hub kapsamındaki güncel karar baz alındı, spec'teki genel `review` varsayılanı değil.\nZORLUK: kolay\nEMİNLİK: 95"
+    }
+  ]
+}

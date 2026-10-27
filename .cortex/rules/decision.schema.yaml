@@ -1,0 +1,46 @@
+# Edited by humans only. Cortex enforces these rules and explains violations to AIs.
+type: decision
+description: What we decided, why, and what we rejected (ADR).
+statuses:
+  - proposed
+  - accepted
+  - rejected
+  - superseded
+initial: proposed
+terminal:
+  - rejected
+  - superseded
+transitions:
+  proposed:
+    - accepted
+    - rejected
+  accepted:
+    - superseded
+  rejected:
+    - proposed
+  superseded: []
+human_only_statuses:
+  - accepted
+  - rejected
+fields:
+  context:
+    type: text
+    required: true
+    description: The problem and constraints
+  alternatives:
+    type: text
+    description: Options considered and why they lost
+  consequences:
+    type: text
+    description: What becomes easier or harder
+  supersedes:
+    type: item_ref
+ai_instructions: Put the decision itself in body. You may propose; only humans accept or reject.
+example:
+  type: decision
+  title: Use iyzico for card payments
+  category_path: backend
+  body: We use iyzico for all card payments.
+  fields:
+    context: Need TRY payments with installments.
+    alternatives: "Stripe: no installments in TR."

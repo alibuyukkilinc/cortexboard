@@ -1,0 +1,236 @@
+{
+  "run_id": "claude-sonnet-5-5-baseline-2026-09-29T20-52-43",
+  "round": 10,
+  "agent": "claude",
+  "model": "claude-sonnet-5-5",
+  "effort": null,
+  "arm": "baseline",
+  "label": null,
+  "fixture": {
+    "repo_head": "89a86bb1b257df87b497b2220d93bc86094a5508",
+    "cortex_version": "0.6.0",
+    "made_at": "2026-09-29T20:17:32.801Z"
+  },
+  "started_at": "2026-09-29T20:52:43.382Z",
+  "finished_at": "2026-09-29T20:56:38.431Z",
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Devir alma",
+      "kind": "retrieval",
+      "wall_ms": 161046,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 19,
+      "tool_errors": 0,
+      "cortex_calls": 0,
+      "tools": {
+        "Bash": 13,
+        "Glob": 1,
+        "Read": 4,
+        "Grep": 1
+      },
+      "turns": 20,
+      "mcp_status": null,
+      "api_ms": 45612,
+      "cost_usd": 0.33910229999999997,
+      "is_error": false,
+      "input_tokens": 396776,
+      "cached_input_tokens": 370341,
+      "output_tokens": 5073,
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "difficulty": "orta",
+      "confidence": 72,
+      "score": {
+        "got": 6,
+        "max": 10,
+        "checks": [
+          {
+            "label": "HTTP araçlarında sohbetten onay",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "code_context süzgeci",
+            "kind": "answer",
+            "points": 1,
+            "got": 0
+          },
+          {
+            "label": "cortex_finish",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "bölüm bazlı düğüm düzenleme",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "sembol bağlantıları",
+            "kind": "answer",
+            "points": 1,
+            "got": 0
+          },
+          {
+            "label": "denemen gerekenler",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "yedekleme 2. tur",
+            "kind": "answer",
+            "points": 1,
+            "got": 0
+          },
+          {
+            "label": "sıradaki: güvenlik maddeleri / axe",
+            "kind": "answer",
+            "points": 1,
+            "got": 0
+          },
+          {
+            "label": "tuzak: ortam değişkenleri",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          }
+        ]
+      },
+      "answer_excerpt": "Devraldığım depoda `.cortex/` yok ve git'te takip edilmiyor. Bu yüzden sahibin incelemesinde bekleyen kartlara, yani gerçek \"review\" listesine ulaşamadım. Aşağıdaki maddeler git geçmişinden, CHANGELOG'dan ve bu makinede çalıştırdığım testlerden çıkarıldı.\n\n1. **Sürüm:** 0.6.0 yayımlandı (`06cfb57`). CI'yi yeşile çeken düzeltmeler `c7a376f` ile geldi. Bu commit'in aynı gün yazılmış olması dışında bir sorun görmedim.\n2. **İncelemede bekleyen iş, kesin liste yok:** Cortex kartları `.cortex/` içinde duruyor ve bu depoda bulunmuyor. Bu yüzden bekleyen kartları kimliğiyle sayamıyorum. Yerine git geçmişinde tanınabilir commit'ler var: `86e408f` (\"to test\" listesi ve 3 günden eski işler için hatırlatma), `fc140ae` (`cortex_finish`), `79991fa` (düğümün bir bölümünü düzenleme), `650f54d` (URL ile bağlanan araçlarda onay) ve `1f2f2c0` (seçenekli sorular). Bunların hepsi 0.6.0'ın parçası. Hangilerinin sahibi tarafından onaylandığını doğrulayamadım.\n3. **Son commit `49e5283` (\"Reports: simplify period setup\") bir gerileme:** Adı sadeleştirme, ama `src/core/reports.ts:75` proje saat dilimini atıp `\"UTC\"` sabitliyor. Bu, README'deki Slice 6 sözüne (\"günler projenin `timezone` değerine göre sayılır\") aykırı. `test/reports.test.ts` içindeki \"reports count days in the project's time zone\" testi de bu yüzden kırılıyor. Değişiklik ya geri alınmalı ya da bilinçliyse test ve dokümantasyon güncellenmeli. Bilinçli olduğuna dair bir not bulamadım.\n4. **`19bcc4b` (\"Agent notes\") bağlamı sildi:** `.mcp.json` silindi. `CLAUDE.md` ise 4 satıra indi, Cortex kullanım kuralları ve hub bağlantı notları gitti (aynı içerikle `AGENTS.md` eklendi). Bu oturumda `cortex_*` MCP araçları yok, dolayısıyla `cortex_brief` gibi çağrılar yapılamıyor.\n5. **Test tuzağı (doğruladım):** Bu makinede kabukta `CORTEX_TOKEN`, `CORTEX_TRUST_PROXY=1`, `CORTEX_PUBLIC_URL=https://<hub>` ve `CORTEX_ALLOWED_HOSTS` tanımlı. `npm test` bu ortamla 284 testten 5'inde kırılıyor. Dördü hub testleri (host allowlist, Secure cookie, `hub me`, HSTS), biri yukarıdaki reports testi. Aynı testleri `env -u CORTEX_TOKEN -u CORTEX_TRUST_PROXY -u CORTEX_PUBLIC_URL -u CORTEX_ALLOWED_HOSTS` ile çalıştırınca `test/hub.test.ts` 20/20 geçti. Yani hub kırılmaları kodun değil, ortamın etkisi. Tam paketi bu değişkenler kapalıyken yeniden çalıştırmadım. Gerçek kırılma yalnızca reports testi.\n6. **Diğer ortam notları:** Node v24.19.0 ve Windows kurulu. CONTRIBUTING, CI'de Windows'ta yol ve süreç başlatma farklarının gerçek hatalar çıkardığını söylüyor. Tam paket yaklaşık 87 sn sürüyor.\n7. **Önerilen sıradaki işler:**\n   - Önce `49e5283`'ü çöz (geri al ya da testi ve dokümanı güncelle).\n   - Testleri `CORTEX_*` değişkenleri temizlenmiş çalıştır. Kalıcı çözüm olarak `test/helpers.ts`'in bu değişkenleri temizlemesi düşünülebilir.\n   - README Roadmap \"Next\" satırındakiler: GitHub Issues çift yönlü senkron, Jira/Linear/Plane içe aktarma, SSO (OIDC) ve davet e-postaları, bağımsız bir benchmark.\n   - `CLAUDE.md`'yi kısaltan değişikliğin (`19bcc4b`) bilinçli olup olmadığını sahibine sor.\n8. **Varsayım:** Kullanıcıya soru soramadığım için \"incelemede bekleyen iş\"i Cortex verisi yerine git geçmişinden yorumladım. Hiçbir dosyayı değiştirmedim, push yapmadım.\n\nZORLUK: orta\nEMİNLİK: 72"
+    },
+    {
+      "id": "T2",
+      "title": "Neden böyle? (iki karar)",
+      "kind": "history",
+      "wall_ms": 33485,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 11,
+      "tool_errors": 1,
+      "cortex_calls": 0,
+      "tools": {
+        "Grep": 6,
+        "Read": 4,
+        "Bash": 1
+      },
+      "turns": 12,
+      "mcp_status": null,
+      "api_ms": 27343,
+      "cost_usd": 0.1824855,
+      "is_error": false,
+      "input_tokens": 164162,
+      "cached_input_tokens": 148435,
+      "output_tokens": 3325,
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "difficulty": "kolay",
+      "confidence": 82,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "oxlint: TS 7 / JS API uyumsuzluğu",
+            "kind": "answer",
+            "points": 4,
+            "got": 4
+          },
+          {
+            "label": "node:sqlite: derleme sorunu",
+            "kind": "answer",
+            "points": 3,
+            "got": 3
+          },
+          {
+            "label": "bedel: Node 22.13 / deneysel uyarı / numaralı parametre",
+            "kind": "count",
+            "points": 3,
+            "got": 3,
+            "note": "3/3"
+          }
+        ]
+      },
+      "answer_excerpt": "**(a) Neden oxlint, typescript-eslint değil?**\n\nPlan başta ESLint + typescript-eslint diyordu. Commit `ba046f7` (S8a) bunu değiştirmiş. Gerekçesi:\n- typescript-eslint, TypeScript'in JS API'sine ihtiyaç duyuyor (peer `typescript <6.1`).\n- Proje yerel TypeScript 7 ile derleniyor (`\"typescript\": \"^7.0.2\"`) ve bu sürümde o JS API yok.\n- oxlint'in type-aware modu, TypeScript 7 üzerine kurulu tsgolint ile çalışıyor (`oxlint-tsgolint`). İhtiyaç duyulan kurallar orada da var: `no-floating-promises`, `no-misused-promises`, `await-thenable`, `consistent-type-imports` ve react-hooks kuralları.\n- Kural seti bilerek küçük tutulmuş (correctness kategorisi kapalı), böylece her bulgu düzeltmeye değer. `npm run lint` uyarıda da başarısız oluyor.\n- Sonuç: 66 bulgu 0'a inmiş.\n\n**(b) Neden `node:sqlite`, bedeli ne oldu?**\n\nGerekçe `CORTEX_SPEC.md` §3'te: indeks yeniden üretilebilir bir önbellek ve git'e girmiyor. Ayrıca \"yerel derleme gerektiren paket yok\". Bu, `npx cortexboard` ile sıfır kurulum hedefiyle uyumlu. better-sqlite3 gibi bir paket node-gyp ya da prebuilt ikili dosya gerektirirdi. Spec'in \"5 dakikada kullanmaya başla\" ilkesiyle de bu çelişirdi.\n\nBedelleri:\n1. **Minimum Node sürümü yükseldi.** 22.13–22.15 arasındaki `node:sqlite` derlemelerinde FTS5 yok. Commit `1d018b6` ile minimum 22.16 yapıldı (`engines`, CI matrisi 22.16 ve 24). Eski sürümde \"no such module: fts5\" yerine açık bir hata mesajı için `src/util/runtime-check.ts` eklendi. Bir eski karar kaydı hâlâ \"Node 22.13+\" diyordu ve güncel değildi (`docs/BENCHMARKS.md`).\n2. **ExperimentalWarning.** Modül yüklenirken uyarı basıyor. `src/cli.ts` başında yalnızca bu uyarıyı bastıran bir filtre var. `node:sqlite`'ı yükleyen import'ların bu filtreden sonra gelmesi gerekiyor, bu da import sırasına bir kısıt getiriyor.\n3. **API kısıtları.** Numaralı parametreler kullanılmıyor; bu bir proje \"gotcha\"sı olarak kayıtlı.\n\nVarsayımlar: `.cortex/` karar kayıtları bu checkout'ta yok. Gerekçeleri commit mesajları, spec ve CHANGELOG'dan aldım, karar kayıtlarının kendisini okumadım. `node:sqlite` seçimine ait ayrı bir commit gerekçesi bulamadım; oradaki neden spec'ten. İkinci maddeki API kısıtı için ise yalnızca BENCHMARKS'taki tek satıra dayanıyorum.\n\nZORLUK: kolay\nEMİNLİK: 82"
+    },
+    {
+      "id": "T3",
+      "title": "Geçmiş bir performans hatası",
+      "kind": "history",
+      "wall_ms": 40236,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 7,
+      "tool_errors": 0,
+      "cortex_calls": 0,
+      "tools": {
+        "Bash": 6,
+        "Grep": 1
+      },
+      "turns": 8,
+      "mcp_status": null,
+      "api_ms": 33823,
+      "cost_usd": 0.2579577,
+      "is_error": false,
+      "input_tokens": 203560,
+      "cached_input_tokens": 177949,
+      "output_tokens": 3813,
+      "models": [
+        "claude-sonnet-5-5"
+      ],
+      "difficulty": "orta",
+      "confidence": 82,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "açılışta tam reindex",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          },
+          {
+            "label": "dirFor / mtime / klasör listeleme",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          },
+          {
+            "label": "deleteDoc / FTS",
+            "kind": "answer",
+            "points": 2,
+            "got": 2
+          },
+          {
+            "label": "şema önbelleği",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          },
+          {
+            "label": "dosyalar: items.ts / db.ts / sync.ts / schema.ts",
+            "kind": "count",
+            "points": 2,
+            "got": 2,
+            "note": "4/4"
+          },
+          {
+            "label": "ölçüm 5,6 → 1,4 sn",
+            "kind": "answer",
+            "points": 1,
+            "got": 1
+          }
+        ]
+      },
+      "answer_excerpt": "Depoda \"~22 saniye\" diye bir ölçüm yok. Aradığım yerler: git geçmişi, CHANGELOG ve testler. Bu rakamı doğrulayamadım. Aşağıdakiler commit mesajlarında ve CHANGELOG'da yazan sayılar. Diff'i `src/core/sync.ts`, `src/index/db.ts`, `src/core/schema.ts`, `src/store/items.ts` ve `test/perf.test.ts` için okudum. `src/core/reports.ts` ve `src/core/cortex.ts` değişikliklerini okumadım, onlar için commit mesajına güveniyorum.\n\nİki ayrı commit var: `55b50cb` (24 Eylül, \"S7: hot paths\") ve `de773f3` (27 Eylül, \"Big projects are fast again\"). İkincisinin ölçümü 1.500 kayıt, 600 düğüm ve 15.000 aktivite girdisi olan tohumlanmış bir projede, Windows ve Node 24 üzerinde yapılmış.\n\n## Kök nedenler ve çözümler\n\n**1. Proje açılışı: 5,6 sn → 1,4 sn**\n- **Neden:** Her açılışta bütün indeks sıfırdan yeniden kuruluyordu. Her dosya okunup ayrıştırılıyordu.\n- **Çözüm:** İndeks artık her dosyanın mtime ve boyutunu `file_stamps` tablosunda tutuyor (`src/index/db.ts`). Açılışta `stampFiles`, `changedFiles` ve `missingRecords` (`src/core/sync.ts`) diskle indeksi karşılaştırıyor. Yalnızca değişen dosyalar yeniden okunuyor. Cortex kapalıyken silinen kayıtlar indeks ile disk karşılaştırılarak bulunuyor.\n- **Geri dönüş:** Damga yoksa tam yeniden kurulum yapılıyor. Silinen bir aktivite dosyası da tam yeniden kurulum gerektiriyor.\n- **Sürüm:** `INDEX_VERSION` 9 oldu, yükseltmeden sonraki ilk açılış bir kez tam kuruluyor.\n\n**2. Rapor: 6 sn → 0,12 sn**\n- **Neden:** Rapor her kayıt, yanıt ve düğüm dosyasını diskten okuyordu. Gün hesabı için `Intl` kullanılıyordu ve bir türün bayrakları tekrar tekrar isteniyordu.\n- **Çözüm (`src/core/reports.ts`, `db.ts`):** Rapor artık indeksten okuyor. `items` tablosuna `severity`, `answered_at`, `answered_by` ve `resolution` sütunları eklendi, `reportItems()` ve `nodeSummaries()` bunları veriyor. Gün bulma `Intl` yerine ikili aramayla yapılıyor. Bir türün bayrakları bir kez isteniyor.\n\n**3. Kayıt oluşturma kayıt sayısıyla yavaşlıyordu: artık kayıt başına yaklaşık 4 ms, kayıt sayısından bağımsız**\n\nÜç ayrı neden vardı:\n- **Klasör listeleme (`src/store/items.ts`):** Her `create` bütün `items` klasörünü yeniden listeliyordu. Şimdi store kendi eklediği klasörü kaydediyor. Başkasının eklediği klasör (git pull, başka süreç) hâlâ mtime ile bulunuyor. Bunun için `test/perf.test.ts` içine \"500 create için en fazla 2 listeleme\" testi eklendi.\n- **Tam metin tablosu taraması (`db.ts`):** `docs_fts` içindeki `kind` ve `ref` sütunları UNINDEXED olduğundan `deleteDoc` her yazmada tabloyu baştan sona tarıyordu. `doc_text` tablosuna `fts_rowid` eklendi ve silme `DELETE ... RETURNING fts_rowid` ile rowid üzerinden yapılıyor. `insertDoc` de önce `deleteDoc` çağırıyor, böylece bir doküman için iki arama satırı oluşmuyor.\n- **YAML ayrıştırma (`src/core/schema.ts`):** `loadSchema` her yazmada ve bayrak kontrolünde kural dosyasını yeniden ayrıştırıyordu. Şimdi `mtime:size` damgasıyla önbelleğe alınıyor, dosya değişince yeniden okunuyor.\n- **Ek ayar:** SQLite WAL modunda `synchronous = NORMAL` kullanılıyor. Güç kesintisinde son yazımlar kaybolabilir ama dosya bozulmaz, indeks zaten dosyalardan yeniden kurulabiliyor.\n\n## Daha eski commit (`55b50cb`, 24 Eylül)\n- **Neden:** Bir arama ıskalaması bütün `items` klasörünü listeliyordu. `reindex` her kaydı aradığı için n kayıt için n listeleme oluyordu, yani karesel maliyet.\n- **Çözüm:** id→klasör haritası yalnızca klasörün mtime'ı değişince yeniden kuruluyor.\n- **Ölçüm:** 500 kayıt 748 → 488 ms, 2.000 kayıt 5.144 → 1.960 ms (karesel → doğrusal).\n- **Ek:** Staleness için git yanıtları HEAD başına önbelleğe alındı, aynı HEAD'de yeniden hesap için git çağrısı bağlı dosya başına bir taneden en fazla 2'ye indi.\n\n## Varsayım\n\"~22 saniye\" büyük olasılıkla bu ölçümlerin toplamı ya da sizin başka bir ortamdaki gözleminiz. Ben yalnızca yukarıdaki yazılı rakamları aktarabilirim. Şu ölçümleri de kendim çalıştırıp yeniden üretmedim.\n\nZORLUK: orta\nEMİNLİK: 82"
+    }
+  ]
+}

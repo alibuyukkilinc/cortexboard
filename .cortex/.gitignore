@@ -1,0 +1,5 @@
+.index/
+.secrets.yaml
+.sessions.json
+views/
+.prompts/

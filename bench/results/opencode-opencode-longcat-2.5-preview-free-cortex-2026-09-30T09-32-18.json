@@ -1,0 +1,74 @@
+{
+  "run_id": "opencode-opencode-longcat-2.5-preview-free-cortex-2026-09-30T09-32-18",
+  "round": 10,
+  "agent": "opencode",
+  "model": "opencode/longcat-2.5-preview-free",
+  "model_resolved": "opencode/longcat-2.5-preview-free",
+  "effort": null,
+  "arm": "cortex",
+  "label": null,
+  "cli": "opencode v2.0.14",
+  "env_effort": null,
+  "fixture": {
+    "repo_head": "89a86bb1b257df87b497b2220d93bc86094a5508",
+    "cortex_version": "0.6.0",
+    "made_at": "2026-09-29T21:02:15.081Z"
+  },
+  "started_at": "2026-09-30T09:32:27.103Z",
+  "finished_at": "2026-09-30T09:33:50.770Z",
+  "tasks": [
+    {
+      "id": "T4",
+      "title": "Güncel kural (eskimiş karar tuzağı)",
+      "kind": "current-rule",
+      "wall_ms": 83112,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 11,
+      "tool_errors": 0,
+      "cortex_calls": 0,
+      "tools": {
+        "glob": 1,
+        "grep": 3,
+        "read": 7
+      },
+      "turns": 4,
+      "input_tokens": 86173,
+      "cached_input_tokens": 50176,
+      "output_tokens": 1462,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "kolay",
+      "confidence": 95,
+      "score": {
+        "got": 0,
+        "max": 10,
+        "checks": [
+          {
+            "label": "doğrudan geçer",
+            "kind": "answer",
+            "points": 4,
+            "got": 0,
+            "note": "states the wrong thing: /doğrudan geçmez/"
+          },
+          {
+            "label": "insan onayı: kararlar / kurallar / sorular",
+            "kind": "count",
+            "points": 3,
+            "got": 0,
+            "note": "states the wrong thing: /doğrudan geçmez/"
+          },
+          {
+            "label": "gerekçe: 214 taslak, 0 ret",
+            "kind": "answer",
+            "points": 3,
+            "got": 0
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "Bu projede (Cortex) bir AI ajanı bilgi düğümüne (knowledge node) yazdığında, yazım **doğrudan geçmez; bir insan onaylayana kadar taslak (draft) olarak kalır**.\n\n## Detaylar\n\n**1. Yazım akışı:**\n- AI bir bilgi düğümü oluşturduğunda veya güncellediğinde, sistem bunu doğrudan aktif düğüm olarak kaydetmez.\n- Bunun yerine bir taslak (`draft`) oluşturulur ve `drafts/<id>.md` dosyasına yazılır (`src/store/drafts.ts`).\n- Taslak, bir insan onayladığında (approve) aktif düğüm haline gelir.\n- Kod kanıtı: `src/core/cortex.ts` satır 949-973'te `putNode` fonksiyonunda `policy === \"review\"` kontrolü ve `saveDraft` çağrısı yapılıyor.\n\n**2. Hangi türler insan onayı ister?**\n- Varsayılan ayarlarda (`src/core/init.ts` satır 168) sadece **`node`** türü `review` modundadır:\n  ```yaml\n  approval: { node: \"review\", task: \"auto\", issue: \"auto\", question: \"auto\", note: \"auto\", decision: \"auto\" }\n  ```\n- Diğer türler (task, issue, question, note, decision) varsayılan olarak `auto` modundadır, yani doğrudan yazılır.\n- Ancak proje yapılandırmasında her tür için `review` veya `human_only` politikası ayarlanabilir. `human_only` olduğunda AI hiç yazamaz, sadece insan yazabilir.\n\n**3. Gerekçe:**\n- **İnsan onayı kuralı:** `src/mcp/approvals.ts` satır 14'te açıkça belirtiliyor: *\"The rule that does not bend: an AI cannot produce a person's approval.\"* (Eğilmez kural: AI bir insan onayı üretemez.)\n- **Bilgi düğümleri kritik kaynak:** Bilgi düğümleri, projelerin kalıcı bilgi tabanını (knowledge base) oluşturur. Yanlış veya hatalı bilgilerin doğrudan yazılması, tüm projeyi etkileyebilir.\n- **Taslak mekanizması:** Taslaklar, insan onayı için bekleyen değişiklikleri temsil eder ve git'te de versiyonlanır, böylece neyin değiştiği takip edilebilir.\n- **Güvenlik katmanı:** AI'ın yazımı, insan denetiminden geçmeden kalıcı bilgi tabanına işlenmesini engeller.\n\nZORLUK: kolay\nEMİNLİK: 95"
+    }
+  ]
+}

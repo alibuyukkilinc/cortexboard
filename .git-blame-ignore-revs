@@ -1,0 +1,5 @@
+# Mechanical commits `git blame` should look through (git config blame.ignoreRevsFile .git-blame-ignore-revs;
+# GitHub does this on its own).
+
+# S8b: formatting sweep (prettier, printWidth 160), no code changes
+402ad89c7cb30a8a9aa5db705a4f98153f1c5c36

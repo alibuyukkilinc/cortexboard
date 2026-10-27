@@ -1,0 +1,32 @@
+# Renders the reference images for the pixel regression tests (e2e/visual.spec.ts) on Linux, where CI compares
+# them. Run it by hand after an intended visual change, download the "visual-baselines" artifact and commit its
+# contents to e2e/__screenshots__/.
+name: Visual baselines
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  baselines:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test -c playwright.visual.config.ts --update-snapshots=all
+        env:
+          CI: "true"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: visual-baselines
+          path: e2e/__screenshots__/
+          retention-days: 7

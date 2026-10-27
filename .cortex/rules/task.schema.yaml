@@ -1,0 +1,37 @@
+# Edited by humans only. Cortex enforces these rules and explains violations to AIs.
+type: task
+description: A unit of work on the board.
+statuses:
+  - backlog
+  - todo
+  - doing
+  - review
+  - done
+initial: backlog
+terminal:
+  - done
+transitions: any
+fields:
+  priority:
+    type: enum
+    values:
+      - low
+      - medium
+      - high
+  due:
+    type: date
+    description: YYYY-MM-DD
+  estimate:
+    type: string
+    max: 40
+    description: Free text, e.g. "2h" or "3 points"
+ai_instructions: Move a task to 'doing' when you start and 'review' when you
+  finish; humans move it to 'done'.
+human_only_statuses:
+  - done
+example:
+  type: task
+  title: Add rate limiting to login
+  category_path: backend
+  fields:
+    priority: high

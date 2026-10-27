@@ -1,0 +1,12 @@
+# Generated, vendored or owned by someone else: never reformatted.
+dist/
+node_modules/
+package-lock.json
+coverage/
+# Cortex's own data: knowledge files are written by Cortex and by people, and reformatting them would
+# rewrite history for every node. Rules belong to humans.
+.cortex/
+*.md
+.mcp.json
+bench/report/data.js
+bench/results/

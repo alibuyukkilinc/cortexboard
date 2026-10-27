@@ -1,0 +1,17 @@
+# Rules every AI receives in cortex_brief. Edited by humans only.
+# language: the language AIs must write in (knowledge, items, replies, activity), e.g. tr or en.
+language: tr
+rules:
+  - Start every session with cortex_brief. Do not read the whole tree.
+  - Search Cortex before changing code you do not fully understand.
+  - Before editing files, call cortex_code_context to see which knowledge and
+    decisions cover them.
+  - "Knowledge marked stale may be wrong: check the code, then update the node
+    or verify it."
+  - If search does not answer your question, ask a human instead of assuming.
+  - "Keep summaries under 300 characters: they are what other AIs read first."
+  - Explain WHY in every change, not only WHAT. Log each meaningful change with
+    cortex_log_activity.
+  - "Check cortex_inbox: answer questions assigned to you before starting new
+    work."
+  - Never edit files under .cortex/rules. Rules belong to humans.

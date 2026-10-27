@@ -1,0 +1,73 @@
+{
+  "run_id": "opencode-opencode-nemotron-3-ultra-free-cortex-2026-09-30T09-32-18",
+  "round": 10,
+  "agent": "opencode",
+  "model": "opencode/nemotron-3-ultra-free",
+  "model_resolved": "opencode/nemotron-3-ultra-free",
+  "effort": null,
+  "arm": "cortex",
+  "label": null,
+  "cli": "opencode v2.0.14",
+  "env_effort": null,
+  "fixture": {
+    "repo_head": "89a86bb1b257df87b497b2220d93bc86094a5508",
+    "cortex_version": "0.6.0",
+    "made_at": "2026-09-29T21:02:15.081Z"
+  },
+  "started_at": "2026-09-30T09:32:27.109Z",
+  "finished_at": "2026-09-30T09:33:51.295Z",
+  "tasks": [
+    {
+      "id": "T4",
+      "title": "Güncel kural (eskimiş karar tuzağı)",
+      "kind": "current-rule",
+      "wall_ms": 83638,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 5,
+      "tool_errors": 0,
+      "cortex_calls": 0,
+      "tools": {
+        "glob": 1,
+        "read": 4
+      },
+      "turns": 5,
+      "input_tokens": 118549,
+      "cached_input_tokens": 25920,
+      "output_tokens": 727,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "kolay",
+      "confidence": 95,
+      "score": {
+        "got": 0,
+        "max": 10,
+        "checks": [
+          {
+            "label": "doğrudan geçer",
+            "kind": "answer",
+            "points": 4,
+            "got": 0,
+            "note": "states the wrong thing: /doğrudan geçmez/"
+          },
+          {
+            "label": "insan onayı: kararlar / kurallar / sorular",
+            "kind": "count",
+            "points": 3,
+            "got": 0,
+            "note": "states the wrong thing: /doğrudan geçmez/"
+          },
+          {
+            "label": "gerekçe: 214 taslak, 0 ret",
+            "kind": "answer",
+            "points": 3,
+            "got": 0
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "Now I have a complete picture. Let me provide a comprehensive answer based on the project specification and tests.\n\n---\n\n## Cevap\n\n### 1. AI ajanı bir bilgi düğümüne (knowledge node) yazdığında ne olur?\n\n**Varsayılan olarak: doğrudan geçmez, taslak (draft) olarak düşer.**\n\n`cortex.config.yaml` içindeki `approval.node` ayarı **`review`** olduğu için (init varsayılanı), bir AI bilgi düğümü yazmaya çalıştığında:\n- Yazım `drafts/` klasörüne kaydedilir\n- Panoda \"Onay bekleyenler\" listesine düşer\n- İnsan onaylayana (tek tek veya toplu) canlı `tree/` altına geçmez\n- Onaylanana kadar aramada `status: \"draft\"` etiketiyle görünür\n\n### 2. Hangi türler hâlâ insan onayı ister?\n\n| Tür | Varsayılan Politika | Açıklama |\n|-----|---------------------|----------|\n| **`node`** (bilgi düğümü) | `review` | **Taslak olur, insan onayı bekler** |\n| **`decision`** (karar) | `auto` | AI **önerebilir** (proposed), ama **kabul/ret sadece insanda** |\n| **`rules`** (kurallar) | `human_only` | **AI asla yazamaz**, sadece `@humans` soru açarak önerir |\n| `task` | `auto` | Doğrudan yazılır |\n| `issue` | `auto` | Doğrudan yazılır |\n| `question` | `auto` | Doğrudan yazılır |\n| `note` | `auto` | Doğrudan yazılır |\n\n> **Not:** İnsan `cortex.config.yaml`'ı düzenleyerek `node: auto` yaparsa AI bilgi düğümlerine doğrudan yazabilir. Testlerde bu senaryo da doğrulanmış: *\"an AI whose knowledge writes apply directly can still send one for review\"* — `review: true` flag'iyle isteğe bağlı taslak da atılabilir.\n\n### 3. Bu kuralın gerekçesi ne?\n\n**Temel ilke: \"Kontrol insanda kalır\" (CORTEX_SPEC.md §2, Madde 4)**\n\nSpesifik nedenler:\n1. **Bilgi yayılımı riski**: Yanlış bir bilgi düğümü ağaçta bir kere canlıya alındığında, diğer AI'lar ve insanlar buna güvenerek karar alır. Yanlış bilginin temizlenmesi zordur.\n2. **Eskime tespiti (§9)**: Kod bağlı düğümlerde `verified_at_commit` kaydedilir. İnsan onayı, kod değişmediyse `verified_at_commit`'i HEAD'e taşır (test: *\"approving a draft pins it to HEAD\"*). Bu, \"eskimiş bilginin ilacı\"dır.\n3. **Şeffaflık ve denetlenebilirlik (§5.3)**: Her AI eylemi `activity/` logunda `draft.*` türünde kayıtlı, kimin ne önerdiği izlenir.\n4. **Toplu onay güvenliği (§8)**: İnsan \"Select All\" yaparsa bile, riskli taslaklar (ör. büyük silme) otomatik seçilmez, diff gösterilip tek tek onatılır (e2e test: *\"a risky draft stays out of a batch\"*).\n5. **AI güvenilirliği metriği (§15)**: Raporlarda \"AI taslak onay oranı\" güven göstergesi olarak takip edilir.\n\n---\n\nZORLUK: kolay\nEMİNLİK: 95"
+    }
+  ]
+}

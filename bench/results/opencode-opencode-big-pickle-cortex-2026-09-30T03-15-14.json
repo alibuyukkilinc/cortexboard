@@ -1,0 +1,74 @@
+{
+  "run_id": "opencode-opencode-big-pickle-cortex-2026-09-30T03-15-14",
+  "round": 10,
+  "agent": "opencode",
+  "model": "opencode/big-pickle",
+  "model_resolved": "opencode/big-pickle",
+  "effort": null,
+  "arm": "cortex",
+  "label": "smoke",
+  "cli": "opencode v2.0.14",
+  "env_effort": null,
+  "fixture": {
+    "repo_head": "89a86bb1b257df87b497b2220d93bc86094a5508",
+    "cortex_version": "0.6.0",
+    "made_at": "2026-09-29T21:02:15.081Z"
+  },
+  "started_at": "2026-09-30T03:15:24.954Z",
+  "finished_at": "2026-09-30T03:17:35.295Z",
+  "tasks": [
+    {
+      "id": "T4",
+      "title": "Güncel kural (eskimiş karar tuzağı)",
+      "kind": "current-rule",
+      "wall_ms": 129282,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 22,
+      "tool_errors": 0,
+      "cortex_calls": 6,
+      "tools": {
+        "shell": 1,
+        "grep": 7,
+        "read": 8,
+        "execute": 6
+      },
+      "turns": 11,
+      "input_tokens": 347420,
+      "cached_input_tokens": 300363,
+      "output_tokens": 2982,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "orta",
+      "confidence": 93,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "doğrudan geçer",
+            "kind": "answer",
+            "points": 4,
+            "got": 4
+          },
+          {
+            "label": "insan onayı: kararlar / kurallar / sorular",
+            "kind": "count",
+            "points": 3,
+            "got": 3,
+            "note": "3/3"
+          },
+          {
+            "label": "gerekçe: 214 taslak, 0 ret",
+            "kind": "answer",
+            "points": 3,
+            "got": 3
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "## Kısa cevap\n\n**Bu repoda doğrudan geçer.** `.cortex/cortex.config.yaml` → `approval.node: auto`, yani bir AI ajanı bilgi düğümü yazdığında taslak oluşmaz; düğüm anında aktif olur ve `node.updated` olarak aktivite akışına düşer.\n\n## Kural nasıl işliyor (kod)\n\n`src/core/cortex.ts:945`:\n\n```\npolicy = actor.policy?.node ?? project.config.approval.node ?? \"review\"\n```\n\nÖncelik sırası: aktörün kendi politikası (hub'daki rol) → proje config'i → varsayılan `review`.\n\n- `auto` → `writeNode` doğrudan; `verified_at_commit` başlığa yazılır, yani \"düğüm şu an HEAD'de doğru\" kefilini yazan kişi verir (`cortex.ts:926-933`).\n- `review` → üst dalın varlığı hemen denetlenir (`parent_missing`), sonra `.cortex/drafts/` altına taslak yazılır, `applied: false` döner, cevap \"A human must approve it\" der. AI aynı düğüme ikinci kez taslak önerirse eskisinin yerine geçer (incelemeci başına tek taslak).\n- `human_only` → 403: \"Only humans may change knowledge nodes in this project.\"\n\nTers yönde bir kaçış var: `cortex_update_node` / `PUT /node` `review: true` kabul eder. Yani `auto` altında bile AI, emin olmadığı tek bir yazımı insana gönderebilir (`test/approvals.test.ts:195`).\n\n## Gerekçe (karar 01M3MXD1644M8SBHHT2RHP8XDB, accepted)\n\nKararın `context` alanındaki ölçüm:\n\n- 30 günde **214 AI taslağı onaylandı, 0 reddedildi** → onay adımı hiçbir şeyi elemiyor, yalnız sahibe iş çıkarıyordu; sahip taslaklara tek tek bakamıyordu.\n- Kararlarda ise insanın sözü **gerçekten** işliyordu: 19 öneri, 1 ret.\n- Hub'da \"Güvenilir\" AI rolü zaten vardı: Katkıcı gibi çalışır ama bilgi yazımları doğrudan geçer.\n- Her yazımın sürüm geçmişi tutulduğu için geri almak mümkün; asıl güvence kural uyum kontrolü.\n\nKabul edilen risk: yanlış bilgi fark edilmeden yayılabilir. Karşı önlemler: sürüm geçmişi + aktivite akışı, `verified_at_commit` üzerinden eskime tespiti, kural uyum kontrolü.\n\nBu karar, daha önceki \"bilgi düğümü = taslak kalsın\" kararını (`01M34Q58D2P4FGZBVSWFTV73F2`) **supersede** etti.\n\n## Hâlâ insan onayı isteyenler\n\n| Ne | Kural | Nerede |\n|---|---|---|\n| `rules/` (`.cortex/rules/*.yaml`, `_global.yaml`) | AI **yazamaz**, 403: \"Rules belong to humans. Propose a change by opening a question for @humans.\" Yol ayrıca `edit_rules` yetkisi ister | `cortex.ts:1246-1247`, `api/routes.ts:151` |\n| Kararı kabul/reddetme | AI önerir, `accepted`/`rejected` yalnız insan | `schema.ts:209` |\n| Görevi `done` yapma | AI `review`'e kadar taşır, `done` insanın | `schema.ts:127` |\n| Tartışmayı `decided` yapma | Çoğunluk oyu öneriye dönüşür, kararı insan verir | `schema.ts:241` |\n| Taslak onayı/reti | Toplu onay/ret uçları insan-only; panoda cevap yalnız insan pano oturumu çerezinden kabul edilir (`board_only`) | `approvals.test.ts:110`, `security.md` |\n| Pano sorularının cevabı | AI'ın çalıştığı süreçteki hiçbir kimlik bilgisi cevaplayamaz | `security.md` |\n| Ek (attachment) yükleme | Taslak **taşıyamaz**: politikası `review` olan türde AI ek yükleyemez/kaldıramaz (403) | `backend/approval` düğümü |\n\nEk olarak, sohbetten gelen onaylarda \"insanın kendi cevabı\" kuralı sert: aktarılan cevaplar `chat.relayed_human_only` kapalı olduğu için `pending` kalır, AI kendi kendine onay üretemez.\n\n## Kapsam notları (bunlar önemli)\n\n- `auto` kararı **bu repo + hub'daki Güvenilir ajanlar** ile sınırlı. `cortex init` varsayılanı hâlâ `node: review` (`init.ts:168`) — yeni bir yerel projede AI düğüm yazımları yine taslaktır. Bu bilinçli olarak değiştirilmedi.\n- Hub'da yeni oluşturulan ajanlar `trusted` (`{ node: \"auto\" }`), ama **var olan bir ajanı başka projeye eklemek** hâlâ `contributor` → bağlı projede yazımlar taslak olur (`hub/server.ts:456` ve `:749`).\n- `discussion` türünün config'de `approval` anahtarı yok; öğe yazımlarında eksik tür `auto`, bilgi düğümünde eksik tür `review` sayılıyor (`items.ts:233` ↔ `cortex.ts:945`).\n\n**Varsayım:** Hub'daki diğer projelerdeki gerçek rol atamalarını doğrulamadım; yukarıdaki rol davranışı koddan (`src/hub/roles.ts`) okundu.\n\nZORLUK: orta\nEMİNLİK: 93"
+    }
+  ]
+}

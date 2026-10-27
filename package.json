@@ -1,0 +1,92 @@
+{
+  "name": "cortexboard",
+  "version": "0.6.1",
+  "description": "Shared project brain for humans and AIs: knowledge tree, board, decisions and AI activity in one place.",
+  "author": "alibuyukkilinc",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alibuyukkilinc/cortexboard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alibuyukkilinc/cortexboard/issues"
+  },
+  "homepage": "https://github.com/alibuyukkilinc/cortexboard#readme",
+  "scripts": {
+    "build": "tsc -p tsconfig.json && vite build",
+    "dev": "tsx src/cli.ts",
+    "dev:web": "vite",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p web/tsconfig.json && tsc -p tsconfig.test.json",
+    "test": "node --import tsx --test --test-timeout=60000 --test-reporter=spec \"test/**/*.test.ts\"",
+    "test:ci": "node --import tsx --test --test-timeout=60000 --test-reporter=spec --test-reporter-destination=stdout --test-reporter=./scripts/gh-annotations.mjs --test-reporter-destination=stdout \"test/**/*.test.ts\"",
+    "test:web": "vitest run",
+    "e2e": "playwright test",
+    "e2e:visual": "playwright test -c playwright.visual.config.ts",
+    "seed:large": "tsx scripts/seed-large.ts",
+    "smoke": "node scripts/smoke.mjs",
+    "lint": "oxlint --type-aware --deny-warnings src web/src web/test e2e scripts test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepublishOnly": "npm run typecheck && npm run lint && npm test && npm run test:web && npm run build && npm run smoke"
+  },
+  "keywords": [
+    "ai",
+    "mcp",
+    "knowledge-base",
+    "kanban",
+    "llm",
+    "agents"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@fastify/cookie": "^11.1.2",
+    "@fastify/static": "^10.1.4",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "fastify": "^5.12.5",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@huggingface/transformers": "^4.3.0",
+    "@playwright/test": "^1.63.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "dompurify": "^3.4.15",
+    "happy-dom": "^20.14.5",
+    "marked": "^18.0.14",
+    "oxlint": "^1.85.0",
+    "oxlint-tsgolint": "^7.0.2002",
+    "prettier": "^3.9.9",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.2"
+  },
+  "bin": {
+    "cortexboard": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.map",
+    "CHANGELOG.md",
+    "docs",
+    "!docs/img"
+  ],
+  "engines": {
+    "node": ">=22.16"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

@@ -1,0 +1,20 @@
+node_modules/
+dist/
+*.log
+e2e/.state/
+test-results/
+playwright-report/
+opencode.jsonc
+*.stackdump
+
+# Kept on disk for the owner's hub, never published: details of the live hub's security review
+# and a screenshot showing account details.
+.cortex/items/01M3NR0PMHXV0X2PRCHNJAQWV8-guvenlik/
+.cortex/items/01M3NQYNRX7X7Z3660KFA2WHZQ-yedekleme/files/
+
+# The Cortex knowledge tree (.cortex/tree, rules, config) is published; the team's working records
+# (cards, discussions, activity logs, status) stay on the maintainer's disk.
+.cortex/items/
+.cortex/activity/
+.cortex/status-history/
+.cortex/status.md

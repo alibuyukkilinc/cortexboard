@@ -1,0 +1,18 @@
+# Edited by humans only. Cortex enforces these rules and explains violations to AIs.
+actions:
+  - code_change
+  - fix
+  - refactor
+  - investigation
+  - config
+  - deploy
+  - docs
+  - other
+why_required_for:
+  - code_change
+  - fix
+  - refactor
+  - config
+  - deploy
+ai_instructions: "Log every meaningful change: what (summary), why, files and
+  commit. One entry per logical change, not per file."

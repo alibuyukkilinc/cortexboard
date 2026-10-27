@@ -1,0 +1,95 @@
+# Typecheck, tests, build and an install smoke test on every OS Cortex promises to run on.
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  # The release workflow runs this whole matrix before it publishes anything.
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.os }} · Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        # 22.16 is the oldest supported version: earlier 22.x builds of node:sqlite have no FTS5. 24 is the current LTS.
+        node: ["22.16", "24"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      # Lint and format are the same on every OS: checked once, on one leg, not six times.
+      - if: matrix.os == 'ubuntu-latest' && matrix.node == '24'
+        run: npm run lint && npm run format:check
+      # Known high or critical vulnerabilities. Not --omit=dev: the board's libraries are devDependencies
+      # that the build bundles into dist/.
+      - if: matrix.os == 'ubuntu-latest' && matrix.node == '24'
+        run: npm audit --audit-level=high
+      # Failing tests also become annotations on the run page (scripts/gh-annotations.mjs).
+      - run: npm run test:ci
+      # The web board's unit and component tests, design tokens and WCAG contrast included (web/test).
+      - run: npm run test:web
+      - run: npm run build
+      # The spec's acceptance criterion: a clean machine installs, inits and starts Cortex in under 2 minutes.
+      # Reading a workflow log needs a signed-in GitHub account, so a failure is repeated as an annotation:
+      # the smoke test's own "✖ ..." line says which step of the install broke, and on which OS.
+      - name: Install smoke test
+        shell: bash
+        # A shared runner downloads and unpacks slower than a laptop; what Cortex itself does after the
+        # install has its own, unadjustable budget inside the script.
+        env:
+          SMOKE_LIMIT_MS: "300000"
+        run: |
+          set -o pipefail
+          if npm run smoke 2>&1 | tee smoke.log; then exit 0; fi
+          why=$(grep -aE '^(✖|Error|npm error)' smoke.log | head -3 | paste -sd ' ' - | cut -c1-600)
+          echo "::error title=smoke failed (${{ matrix.os }}, Node ${{ matrix.node }})::${why:-npm run smoke exited non-zero}"
+          exit 1
+
+  # The board in a real browser: every screen through axe (WCAG A/AA), keyboard focus in dialogs and layout
+  # shift, on a phone and a wide screen, light and dark (playwright.config.ts). Linux only: browsers render
+  # the same on every OS for these checks, and one leg keeps the run short.
+  e2e:
+    name: Browser flows (Playwright + axe)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+        env:
+          CI: "true"
+      # Pixel regression against the committed Linux references (e2e/__screenshots__, made by visual-baselines.yml).
+      - run: npm run e2e:visual
+        env:
+          CI: "true"
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

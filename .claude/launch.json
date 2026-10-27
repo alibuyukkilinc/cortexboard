@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "cortex-board",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["dist/cli.js", "start", "--port", "4748"],
+      "port": 4748
+    },
+    {
+      "name": "cortex-e2e",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["tsx", "e2e/server.ts"],
+      "port": 4799
+    },
+    {
+      "name": "bench-report",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["bench/report/serve.mjs"],
+      "port": 4790
+    },
+    {
+      "name": "cortex-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:web"],
+      "port": 5173
+    }
+  ]
+}

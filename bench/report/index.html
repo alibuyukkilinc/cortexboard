@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cortex Ölçümleri</title>
+    <meta name="description" content="Cortex bir AI ajanını hızlandırıyor mu? Çok oturumlu iş akışında Claude ve GPT modelleri, Cortex'li ve Cortex'siz." />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div class="wrap">
+        <p class="eyebrow">cortexboard · ölçüm</p>
+        <h1 id="title">Cortex bir AI ajanına ne kazandırıyor?</h1>
+        <p class="lede" id="lede">
+          Aynı proje, aynı sekiz görev, her görev ayrı ve temiz bir oturumda. Ajanın bir sonraki oturumda bildiği her şey, projenin tuttuğu kayıttan geliyor.
+        </p>
+        <p class="meta" id="meta"></p>
+        <div class="theme">
+          <button type="button" data-theme-set="auto" aria-pressed="true">Sistem</button>
+          <button type="button" data-theme-set="light" aria-pressed="false">Açık</button>
+          <button type="button" data-theme-set="dark" aria-pressed="false">Koyu</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section id="empty" class="card empty" hidden>
+        <h2>Henüz sonuç yok</h2>
+        <p>Koşuları başlatın, ardından raporu yeniden üretin:</p>
+        <pre><code>node bench/prepare.mjs
+node bench/matrix.mjs
+node bench/report/build.mjs</code></pre>
+      </section>
+
+      <section id="kpis" class="kpis" aria-label="Özet"></section>
+
+      <section class="card" aria-labelledby="h-score">
+        <div class="card-head">
+          <h2 id="h-score">Doğruluk</h2>
+          <p class="sub">8 görevde toplanan puan, 80 üzerinden. Otomatik kontroller: cevap içeriği, testler, depoya yazılan kayıtlar.</p>
+        </div>
+        <div class="legend" data-legend></div>
+        <div class="chart" id="c-score"></div>
+      </section>
+
+      <div class="grid2">
+        <section class="card" aria-labelledby="h-tokens">
+          <div class="card-head">
+            <h2 id="h-tokens">Token</h2>
+            <p class="sub">8 oturumun toplamı (girdi + çıktı, önbellekten okunan dahil).</p>
+          </div>
+          <div class="legend" data-legend></div>
+          <div class="chart" id="c-tokens"></div>
+        </section>
+        <section class="card" aria-labelledby="h-time">
+          <div class="card-head">
+            <h2 id="h-time">Süre</h2>
+            <p class="sub">8 oturumun duvar saati toplamı, dakika.</p>
+          </div>
+          <div class="legend" data-legend></div>
+          <div class="chart" id="c-time"></div>
+        </section>
+      </div>
+
+      <div class="grid2">
+        <section class="card" aria-labelledby="h-eff">
+          <div class="card-head">
+            <h2 id="h-eff">Verimlilik</h2>
+            <p class="sub">100 bin token başına puan. Yüksek olan, aynı bütçeyle daha çok doğru iş çıkarıyor.</p>
+          </div>
+          <div class="legend" data-legend></div>
+          <div class="chart" id="c-eff"></div>
+        </section>
+        <section class="card" aria-labelledby="h-waste">
+          <div class="card-head">
+            <h2 id="h-waste">Zaman kaybı</h2>
+            <p class="sub">Yarım puanın altında kalan görevlerde harcanan süre, dakika. Emek var, sonuç yok.</p>
+          </div>
+          <div class="legend" data-legend></div>
+          <div class="chart" id="c-waste"></div>
+        </section>
+      </div>
+
+      <section class="card" aria-labelledby="h-heat">
+        <div class="card-head">
+          <h2 id="h-heat">Görev görev</h2>
+          <p class="sub">
+            Her hücre bir görevin puanı (10 üzerinden). ⊘ geçersiz (gerçek projenin bilgisini test kopyasının dışından okudu), · dışarı baktı ama bilgi okumadı.
+            Bir hücreye tıklayın: kontroller ve ajanın cevabı açılır.
+          </p>
+        </div>
+        <div class="heat-wrap"><div id="c-heat"></div></div>
+        <div class="heat-scale" aria-hidden="true"><span>0</span><i></i><span>10</span></div>
+        <div id="detail" class="detail" hidden></div>
+      </section>
+
+      <section class="card" aria-labelledby="h-table">
+        <div class="card-head">
+          <h2 id="h-table">Tüm ölçümler</h2>
+          <p class="sub">Sütun başlığına tıklayarak sıralayın. Zorluk, ajanın her görevin sonunda kendi verdiği nottur.</p>
+        </div>
+        <div class="table-wrap"><table id="t-runs"></table></div>
+      </section>
+
+      <section class="card" aria-labelledby="h-tasks">
+        <div class="card-head">
+          <h2 id="h-tasks">Görevler ve cevap anahtarı</h2>
+          <p class="sub">Görevler sırayla çalışır; 6. ve 7. görevin yazdıkları, 8. görevde yeni bir oturumun bulması gereken kayıttır.</p>
+        </div>
+        <div id="tasks"></div>
+      </section>
+
+      <section class="card" aria-labelledby="h-notes" id="notes-card" hidden>
+        <div class="card-head"><h2 id="h-notes">Bu turda dikkat</h2></div>
+        <div class="prose"><ul id="notes"></ul></div>
+      </section>
+
+      <section class="card" aria-labelledby="h-method">
+        <div class="card-head"><h2 id="h-method">Yöntem</h2></div>
+        <div class="prose">
+          <ul>
+            <li>
+              <b>İki kol.</b> <i>Cortex</i>: bu depo, <code>.cortex/</code> bilgisiyle ve yayındaki cortexboard'un MCP araçlarıyla. <i>Cortex'siz</i>: aynı kod,
+              <code>.cortex/</code> bütün git geçmişinden silinmiş; ajan yalnız kodu, git'i ve belgeleri okur.
+            </li>
+            <li>
+              <b>Temiz oturumlar.</b> Her görev yeni bir oturum; sohbet belleği, otomatik bellek, alt ajan ve internet kapalı. Oturumlar arasında yalnız depo ve
+              (varsa) Cortex kalır.
+            </li>
+            <li><b>Ekilmiş hata.</b> İki kolda da aynı masum görünümlü commit, raporun proje saat dilimini yok saymasına yol açar (7. görev).</li>
+            <li>
+              <b>Puan.</b> Tamamen otomatik: cevapta aranan olgular, test komutu, gizli bir test, değişen/değişmeyen dosyalar ve kod dışında bir kayıt. Anahtar
+              kelime eşleşmesi kaba bir ölçüdür; cevap anahtarı ikinci bir göz için aşağıda.
+            </li>
+            <li>
+              <b>Ölçüler.</b> Duvar saati, token (girdi, önbellek, çıktı), maliyet (yalnız Claude bildirir), araç çağrısı, başarısız çağrı, oturum hatası,
+              ajanın kendi zorluk ve eminlik notu.
+            </li>
+          </ul>
+          <p>
+            Yeniden üretmek için: <code>node bench/prepare.mjs</code> → <code>node bench/matrix.mjs</code> (Claude) ve
+            <code>node bench/run.mjs --agent codex --arm cortex|baseline</code> (GPT) → <code>node bench/report/build.mjs</code>.
+          </p>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="h-hist">
+        <div class="card-head">
+          <h2 id="h-hist">Önceki turlar (1-9)</h2>
+          <p class="sub">Soru-cevap ağırlıklı ölçümler; ayrıntılar <code>docs/BENCHMARKS.md</code>'de. Doğruluk ve token "kod → Cortex" olarak.</p>
+        </div>
+        <div class="table-wrap"><table id="t-hist"></table></div>
+      </section>
+    </main>
+
+    <div id="tip" class="tip" role="tooltip" hidden></div>
+    <footer class="wrap foot" id="foot"></footer>
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

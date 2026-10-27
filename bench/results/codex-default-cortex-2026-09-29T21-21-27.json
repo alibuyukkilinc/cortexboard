@@ -1,0 +1,77 @@
+{
+  "run_id": "codex-default-cortex-2026-09-29T21-21-27",
+  "round": 10,
+  "agent": "codex",
+  "model": "default",
+  "effort": null,
+  "arm": "cortex",
+  "label": "smoke",
+  "cli": "codex-cli 0.158.0-alpha.2.1",
+  "env_effort": null,
+  "fixture": {
+    "repo_head": "89a86bb1b257df87b497b2220d93bc86094a5508",
+    "cortex_version": "0.6.0",
+    "made_at": "2026-09-29T21:02:15.081Z"
+  },
+  "started_at": "2026-09-29T21:21:33.709Z",
+  "finished_at": "2026-09-29T21:23:03.657Z",
+  "tasks": [
+    {
+      "id": "T4",
+      "title": "Güncel kural (eskimiş karar tuzağı)",
+      "kind": "current-rule",
+      "wall_ms": 89381,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 12,
+      "tool_errors": 1,
+      "cortex_calls": 6,
+      "tools": {
+        "shell": 6,
+        "cortex_bench.cortex_brief": 1,
+        "cortex_bench.cortex_inbox": 1,
+        "cortex_bench.cortex_search": 1,
+        "cortex_bench.cortex_node": 1,
+        "cortex_bench.cortex_item": 1,
+        "cortex_bench.cortex_update_status": 1
+      },
+      "turns": 1,
+      "input_tokens": 184589,
+      "cached_input_tokens": 157824,
+      "output_tokens": 1310,
+      "cost_usd": null,
+      "is_error": false,
+      "difficulty": "kolay",
+      "confidence": 99,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "doğrudan geçer",
+            "kind": "answer",
+            "points": 4,
+            "got": 4
+          },
+          {
+            "label": "insan onayı: kararlar / kurallar / sorular",
+            "kind": "count",
+            "points": 3,
+            "got": 3,
+            "note": "3/3"
+          },
+          {
+            "label": "gerekçe: 214 taslak, 0 ret",
+            "kind": "answer",
+            "points": 3,
+            "got": 3
+          }
+        ]
+      },
+      "answer_excerpt": "**Bu projede AI’ın bilgi düğümü yazımı doğrudan geçer.** `.cortex/cortex.config.yaml` içinde `approval.node: auto`. Eski “insan onaylayana kadar taslak” kararı, kabul edilmiş `01M3MXD1644M8SBHHT2RHP8XDB` kararıyla değiştirilmiş.\n\nİstisna: AI emin olmadığı veya riskli bulduğu yazımı `review: true` ile taslağa gönderebilir. Aktöre özel politika da proje ayarını geçersiz kılabilir. Yeni yerel projelerde `init` varsayılanı hâlâ `node: review`; bu değişiklik bütün projelerin varsayılanını değiştirmiyor.\n\nİnsan yetkisinde kalanlar:\n\n- **Kararlar:** AI öneri oluşturabilir; kabul ve ret insana aittir. `decision: auto`, kararın otomatik kabul edildiği anlamına gelmez.\n- **Kurallar (`rules/`):** yalnız insanlar değiştirir.\n- **`@humans` soruları:** insanın yanıtı gerekir; AI onun yerine cevap veremez.\n- **Görevlerin tamamlanması:** mevcut şemada AI işi `review` durumuna getirir; `done` geçişi insana aittir.\n- **Taslaklar:** taslak olarak gönderilen yazımın onayı/reddi insana aittir.\n\n**Gerekçe:** 30 günde **214 AI taslağı onaylanmış, hiçbiri reddedilmemiş**. Zorunlu onay hiçbir şeyi elemeyip sahibine iş çıkarıyordu. Kararlarda ise **19 öneriden 1’i reddedilmiş**; insan değerlendirmesi burada gerçekten etkiliydi. Doğrudan yazımın riski, yanlış bilginin fark edilmeden yayılması; sürüm geçmişi ve aktivite kayıtları geri almayı destekliyor.\n\nZORLUK: kolay\nEMİNLİK: 99",
+      "outside": [],
+      "voided": false
+    }
+  ],
+  "model_resolved": "gpt-6-astra"
+}

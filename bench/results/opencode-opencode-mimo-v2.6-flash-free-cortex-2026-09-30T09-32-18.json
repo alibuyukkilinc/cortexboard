@@ -1,0 +1,75 @@
+{
+  "run_id": "opencode-opencode-mimo-v2.6-flash-free-cortex-2026-09-30T09-32-18",
+  "round": 10,
+  "agent": "opencode",
+  "model": "opencode/mimo-v2.6-flash-free",
+  "model_resolved": "opencode/mimo-v2.6-flash-free",
+  "effort": null,
+  "arm": "cortex",
+  "label": null,
+  "cli": "opencode v2.0.14",
+  "env_effort": null,
+  "fixture": {
+    "repo_head": "89a86bb1b257df87b497b2220d93bc86094a5508",
+    "cortex_version": "0.6.0",
+    "made_at": "2026-09-29T21:02:15.081Z"
+  },
+  "started_at": "2026-09-30T09:32:27.102Z",
+  "finished_at": "2026-09-30T09:35:48.702Z",
+  "tasks": [
+    {
+      "id": "T4",
+      "title": "Güncel kural (eskimiş karar tuzağı)",
+      "kind": "current-rule",
+      "wall_ms": 201045,
+      "exit_code": 0,
+      "timed_out": false,
+      "tool_calls": 21,
+      "tool_errors": 0,
+      "cortex_calls": 5,
+      "tools": {
+        "execute": 4,
+        "grep": 7,
+        "read": 5,
+        "glob": 3,
+        "shell": 2
+      },
+      "turns": 11,
+      "input_tokens": 380926,
+      "cached_input_tokens": 334528,
+      "output_tokens": 5690,
+      "cost_usd": 0,
+      "is_error": false,
+      "difficulty": "orta",
+      "confidence": 88,
+      "score": {
+        "got": 10,
+        "max": 10,
+        "checks": [
+          {
+            "label": "doğrudan geçer",
+            "kind": "answer",
+            "points": 4,
+            "got": 4
+          },
+          {
+            "label": "insan onayı: kararlar / kurallar / sorular",
+            "kind": "count",
+            "points": 3,
+            "got": 3,
+            "note": "3/3"
+          },
+          {
+            "label": "gerekçe: 214 taslak, 0 ret",
+            "kind": "answer",
+            "points": 3,
+            "got": 3
+          }
+        ]
+      },
+      "outside": [],
+      "voided": false,
+      "answer_excerpt": "## Kısa cevap\n\nBu repoda bir AI ajanının bilgi düğümüne yazımı **doğrudan geçer; taslakta beklemez**. Taslağa düşmesi gereken durumlar politikaya bağlı, politika da bu projede `auto`'ya ayarlı.\n\n## Kanıt\n\n**1) Politika (yapılandırma):** `.cortex/cortex.config.yaml`\n```yaml\n# approval (for AI actors): auto = writes directly, review = writes become drafts a human approves, human_only = AI cannot write.\napproval:\n  node: auto\n  task: auto\n  issue: auto\n  question: auto\n  note: auto\n  decision: auto\n```\nYani bu projede **hiçbir tür** onay politikası üzerinden taslak istemiyor.\n\n**2) Kod (kuralın kendisi):** `src/core/cortex.ts:945-974`\n```ts\nconst policy = actor.policy?.node ?? this.project.config.approval.node ?? \"review\";\nif (actor.kind === \"ai\" && policy === \"human_only\") throw ... 403\nif (actor.kind === \"ai\" && (policy === \"review\" || review === true)) { ...saveDraft(); return { applied: false, draft_id } }\nthis.writeNode(node);  // auto: doğrudan yazılır\n```\n- Öncelik: aktör bazlı `Actor.policy` → proje `approval.node` → kod içi varsayılan **`review`**.\n- Kod varsayılanı `review`; `src/core/init.ts:168` de yeni yerel projeler için `node: review` ile başlatıyor. Yani \"önce taslak\" hâlâ genel kural, bu repo bilinçli olarak istisna.\n- AI emin değilse tek yazımı `review: true` ile yine taslağa gönderebilir (`NodeInput.review`).\n- Aynı kapı eşyalar için de var: `src/core/items.ts:232-236` (`policyGate`).\n\n**3) Taslak akışı (politika `review` iken ne olur):** üst dalın varlığı hemen doğrulanır (`parent_missing`), taslak `.cortex/drafts/` altına `base_rev` ile kaydedilir, aynı düğüme ikinci taslak öncekinin yerine geçer; insan onaylayınca (`approve`) düğüm aktif olur. Onay/ret yalnızca insana ait (`cortex.ts:1280`).\n\n**4) Ne değişti / karar:** Commit `50ee58d` `approval.node: review → auto` değiştirmiş. Gerekçe `backend/approval` düğümünde ve karar `01M3MXD1644M8SBHHT2RHP8XDB` (2026-09-29) içinde: **30 günde 214 AI taslağı onaylanmış, 0 tanesi reddedilmiş** — onay adımı hiçbir şeyi elemiyormuş, sadece sürtünme yaratıyormuş. Bunun sonucu:\n- Bu repoda `approval.node: auto`,\n- Hub'daki yeni AI ajanları \"Güvenilir\" (`Actor.policy = { node: \"auto\" }`),\n- `init` varsayılanı değişmedi (yeni projelerde `review`),\n- İnsan onayı **kararlar, `rules/` ve @humans soruları** için korunmuş.\n\n## Hâlâ insan onayı isteyenler (yapılandırmadan bağımsız, koda gömülü)\n\n| Ne | Nerede |\n|---|---|\n| Düğüm **silme** — \"Only humans can delete knowledge\" | `cortex.ts:1001-1003` |\n| Taslak **onay/ret** — \"Only human actors can approve or reject drafts\" | `cortex.ts:1280` |\n| **`.cortex/rules/` yazmak** — \"Rules belong to humans\" (+ global kural) | `cortex.ts:1247` |\n| **Karar** `accepted` / `rejected` (AI yalnızca *önerir*) | `schema.ts:209`, `items.ts:217` |\n| **Görev** `done` durumu (AI `review`'a kadar getirir) | `schema.ts:127` |\n| **Tartışma** `decided` durumu | `schema.ts:241` |\n| **Arşivleme** — AI her arşivlemeyi taslağa çevirir, politikadan bağımsız; en az 10 karakterlik gerekçe şart | `archive.ts:148-179` |\n| Sohbette **insan onayı üretmek** — \"an AI cannot produce a person's approval\" | `src/mcp/approvals.ts:14` |\n| `human_only` politikalı her tür → AI için 403 | `cortex.ts:946`, `items.ts:235` |\n\nEk not: `review` politikası altındayken ek (attachment) yükleyemez, `cortex_verify_node` bile taslağa döner (`verifyNode` → `putNode`); bu projede `auto` olduğu için ikisi de direkt.\n\n## Varsayım / dikkat çelişkisi\n\n- `.cortex/rules/node.schema.yaml` satır 25-27 hâlâ *\"Your writes become drafts until a human approves them\"* diyor; bu metin `auto` politikasıyla **çelişiyor**. Çalışan kuralın kod+config olduğunu varsaydım (policy kontrolü kodda), rules metnini güncellenmemiş bir metin olarak okudum — çünkü AI kural dosyalarını zaten değiştiremiyor (`cortex.ts:1247`).\n- `actor.policy` bu repoda tanımlı değil; hub rollerine (`src/hub/roles.ts`) ait, yerel çalışmada devreye girmiyor varsayımıyla ilerledim.\n\nZORLUK: orta\nEMİNLİK: 88"
+    }
+  ]
+}
