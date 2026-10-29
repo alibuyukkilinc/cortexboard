@@ -6,7 +6,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { ApiError } from "./api";
 import type { Live } from "./api";
 import { LiveContext, api, apiPath, currentProject, useApi } from "./api";
-import { AdminPage, HubFrame, HubHome, HubLogin, InvitePage, MembersPage, ProjectSwitcher, UserMenu, useHubMe } from "./hub";
+import { AdminPage, ForgotPage, HubFrame, HubHome, HubLogin, InvitePage, MembersPage, ProjectSwitcher, UserMenu, useHubMe } from "./hub";
 import type { Key, Lang } from "./i18n";
 import { LangContext, initialLang, timeAgo, useT } from "./i18n";
 import { AskDialog, ItemDrawer } from "./items";
@@ -51,10 +51,10 @@ export function App() {
 }
 
 // Which screen: the server says whether it is a single project or a hub; the path says where we are.
-//   hub:  /invite/<token> · /admin (organization) · /p/<project>/ (a board) · / (projects)
+//   hub:  /invite/<token> · /forgot · /admin (organization) · /p/<project>/ (a board) · / (projects)
 //   single project: the board at /
 function Root() {
-  const [health, setHealth] = useState<{ mode: "hub" | "project"; org?: string } | null>(null);
+  const [health, setHealth] = useState<{ mode: "hub" | "project"; org?: string; mail?: boolean } | null>(null);
   useEffect(() => {
     fetch("/api/health")
       .then((r) => r.json())
@@ -66,7 +66,8 @@ function Root() {
   if (health.mode === "hub") {
     const invite = /^\/invite\/([^/]+)/.exec(path);
     if (invite) return <InvitePage token={decodeURIComponent(invite[1])} />;
-    return <HubRoot org={health.org} />;
+    if (path === "/forgot") return <ForgotPage org={health.org} />;
+    return <HubRoot org={health.org} mail={health.mail} />;
   }
   return <ProjectRoot />;
 }
@@ -88,10 +89,10 @@ function ProjectRoot({ hubMe }: { hubMe?: HubMe }) {
   return <Shell me={me} hubMe={hubMe} />;
 }
 
-function HubRoot({ org }: { org?: string }) {
+function HubRoot({ org, mail }: { org?: string; mail?: boolean }) {
   const me = useHubMe();
   if (me.loading && !me.data) return <Loading />;
-  if (!me.data) return <HubLogin org={org} />;
+  if (!me.data) return <HubLogin org={org} mail={mail} />;
   if (currentProject()) return <ProjectRoot hubMe={me.data} />;
   if (location.pathname.startsWith("/admin") && me.data.principal.org_admin) return <AdminPage me={me.data} />;
   return <HubHome me={me.data} />;

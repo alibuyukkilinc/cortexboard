@@ -173,8 +173,9 @@ export async function stageRestore(store: HubStore, name: string, by: string, op
 }
 
 // Settings that belong to this machine, not to the hub that was backed up: where it listens, how it is
-// reached, and where its backups go. The restored hub.yaml gets these from the hub it replaces.
-const MACHINE_KEYS = ["host", "port", "public_url", "allowed_hosts", "trust_proxy", "cookie_secure", "backup"] as const;
+// reached, where its backups go and how it sends email (its key is not in the archive). The restored hub.yaml
+// gets these from the hub it replaces.
+const MACHINE_KEYS = ["host", "port", "public_url", "allowed_hosts", "trust_proxy", "cookie_secure", "backup", "mail"] as const;
 
 // Renames, retrying for a while: on Windows the hub that asked for the restart may still be letting go of its files.
 function renameRetry(from: string, to: string): void {

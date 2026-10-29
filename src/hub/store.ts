@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import type { BackupSettings } from "./backup.js";
+import type { MailSettings } from "./mail.js";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import YAML from "yaml";
@@ -23,6 +24,7 @@ export interface HubSettings {
   pull_minutes?: number; // fast-forward every project's checkout from its upstream this often; unset or 0 = only on request
   backup?: BackupSettings; // BunnyCDN backups (src/hub/backup.ts); the keys live in backup.secrets.yaml, not here
   commit_seconds?: number; // commit knowledge held in the hub's folder this often (never pushed); default 60, 0 = off
+  mail?: MailSettings; // email through Resend (src/hub/mail.ts); the key lives in mail.secrets.yaml, not here
 }
 
 // The hub's address and proxy settings can come from the environment, over hub.yaml, so a tunnel or domain
@@ -124,6 +126,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DAY = 86_400_000;
 export const SESSION_DAYS = 30;
 export const INVITE_DAYS = 2; // an invite is a password: short-lived
+export const RESET_MINUTES = 60; // a link sent by "forgot password" to an inbox: shorter still
 
 export class HubStore {
   readonly db: DatabaseSync;
@@ -328,10 +331,10 @@ export class HubStore {
 
   // ---- invites and sessions -------------------------------------------------------------
 
-  createInvite(userId: string): string {
+  createInvite(userId: string, ms = INVITE_DAYS * DAY): string {
     const token = newToken("inv");
     this.db.prepare("DELETE FROM invites WHERE user_id = ?").run(userId); // only the newest link works
-    this.db.prepare("INSERT INTO invites VALUES (?, ?, ?)").run(tokenHash(token), userId, new Date(Date.now() + INVITE_DAYS * DAY).toISOString());
+    this.db.prepare("INSERT INTO invites VALUES (?, ?, ?)").run(tokenHash(token), userId, new Date(Date.now() + ms).toISOString());
     return token;
   }
 

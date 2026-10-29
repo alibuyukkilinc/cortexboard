@@ -6,6 +6,7 @@ import type { Key } from "./i18n";
 import type { HubMe } from "./types";
 import { HBars, StackedColumns } from "./charts";
 import { BackupsPanel } from "./backups";
+import { MailPanel } from "./mail";
 import { Ago, EmptyState, ErrorBox, Icon, Loading, Modal, PageGate, useRoute, useToast } from "./ui";
 
 // Screens of the team server (hub): sign-in, invites, the project list, organization admin and project members.
@@ -26,7 +27,7 @@ export function Brand({ sub }: { sub?: string }) {
 
 // ---- sign in -------------------------------------------------------------------------
 
-export function HubLogin({ org }: { org?: string }) {
+export function HubLogin({ org, mail }: { org?: string; mail?: boolean }) {
   const t = useT();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -76,8 +77,66 @@ export function HubLogin({ org }: { org?: string }) {
         <button className="btn primary wide" disabled={busy || !email || !password}>
           {busy ? t("hub.signingIn") : t("hub.signIn")}
         </button>
-        <p className="auth-foot">{t("hub.forgot")}</p>
+        <p className="auth-foot">
+          {mail ? <a href={`/forgot${email ? `?email=${encodeURIComponent(email)}` : ""}`}>{t("hub.forgotLink")}</a> : t("hub.forgot")}
+        </p>
       </form>
+    </AuthCard>
+  );
+}
+
+// "Forgot password": the hub emails a short-lived link to set a new one (src/hub/mail.ts). The answer is the
+// same whether the address has an account or not.
+export function ForgotPage({ org }: { org?: string }) {
+  const t = useT();
+  const [email, setEmail] = useState(() => new URLSearchParams(location.search).get("email") ?? "");
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [err, setErr] = useState<unknown>(null);
+  const submit = async (e: FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    setErr(null);
+    try {
+      await api("/api/auth/forgot", { method: "POST", body: { email } });
+      setSent(true);
+    } catch (e2) {
+      setErr(e2);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <AuthCard title={t("hub.forgotTitle")} sub={org}>
+      {sent ? (
+        <p className="muted" role="status">
+          {t("hub.forgotSent")}
+        </p>
+      ) : (
+        <form onSubmit={(e) => void submit(e)}>
+          <p className="muted">{t("hub.forgotBody")}</p>
+          <ErrorBox error={err} />
+          <div className="field">
+            <label htmlFor="forgot-email">{t("hub.email")}</label>
+            <input
+              id="forgot-email"
+              className="input"
+              type="email"
+              autoComplete="username"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <button className="btn primary wide" disabled={busy || !email}>
+            {t("hub.forgotSend")}
+          </button>
+        </form>
+      )}
+      <p className="auth-foot">
+        <a href="/">{t("hub.backToSignIn")}</a>
+      </p>
     </AuthCard>
   );
 }
@@ -430,14 +489,14 @@ type AdminProject = {
 export function AdminPage({ me }: { me: HubMe }) {
   const t = useT();
   const route = useRoute();
-  const tab = route[0] === "agents" || route[0] === "projects" || route[0] === "usage" || route[0] === "backups" ? route[0] : "users";
+  const tab = route[0] === "agents" || route[0] === "projects" || route[0] === "usage" || route[0] === "backups" || route[0] === "mail" ? route[0] : "users";
   return (
     <HubFrame me={me}>
       <div className="page-head">
         <h1>{t("hub.organization")}</h1>
         <span className="spacer" />
         <div className="segmented" role="tablist">
-          {(["users", "agents", "projects", "backups", "usage"] as const).map((k) => (
+          {(["users", "agents", "projects", "backups", "mail", "usage"] as const).map((k) => (
             <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => (location.hash = `#/${k}`)}>
               {t(
                 k === "users"
@@ -448,7 +507,9 @@ export function AdminPage({ me }: { me: HubMe }) {
                       ? "hub.projects"
                       : k === "backups"
                         ? "backup.title"
-                        : "usage.title",
+                        : k === "mail"
+                          ? "mail.title"
+                          : "usage.title",
               )}
             </button>
           ))}
@@ -458,6 +519,7 @@ export function AdminPage({ me }: { me: HubMe }) {
       {tab === "agents" && <AgentsTab />}
       {tab === "projects" && <ProjectsTab />}
       {tab === "backups" && <BackupsPanel base="/api/admin/backup" kind="hub" />}
+      {tab === "mail" && <MailPanel />}
       {tab === "usage" && <UsageTab />}
     </HubFrame>
   );

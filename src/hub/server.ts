@@ -10,7 +10,9 @@ import { buildAccess } from "./access.js";
 import { PASSWORD_MIN, hashPassword, verifyPassword } from "./crypto.js";
 import { ROLE_PERMS, ROLE_POLICY } from "./roles.js";
 import type { Agent, HubStore, Member, OAuthGrant, Principal, User } from "./store.js";
-import { SESSION_DAYS } from "./store.js";
+import { RESET_MINUTES, SESSION_DAYS } from "./store.js";
+import type { Fetch } from "./mail.js";
+import { configureMail, mailReady, mailStatus, resetMail, sendMail } from "./mail.js";
 import { RateLimiter } from "./limiter.js";
 import { HUMAN_KEY_HEADER, registerMcpHttp } from "./mcpHttp.js";
 import { registerOAuth } from "./oauth.js";
@@ -135,6 +137,10 @@ export class Hub {
   // Set by `hub start`: stops this process and starts the hub again (a staged restore is applied on the way).
   restarter: (() => Promise<void>) | null = null;
 
+  // How email leaves the hub (src/hub/mail.ts); tests swap it for a recorder.
+  mailFetch: Fetch = fetch;
+  mailing: Promise<void> = Promise.resolve(); // the last email sent in the background, for tests to wait on
+
   startCommitting(seconds: number): void {
     if (!(seconds > 0)) return;
     const timer = setInterval(() => void this.commitAll().catch(() => {}), seconds * 1000);
@@ -212,8 +218,15 @@ const WINDOW = 15 * 60_000;
 export function buildHubServer(hub: Hub): FastifyInstance {
   const store = hub.store;
   const app = baseServer({ trustProxy: store.settings.trust_proxy === true });
-  // Per 15 minutes: 10 wrong passwords per address+email, 10 bad agent tokens or 20 dead invite links per address.
-  const limits = { login: new RateLimiter(10, WINDOW), token: new RateLimiter(10, WINDOW), invite: new RateLimiter(20, WINDOW) };
+  // Per 15 minutes: 10 wrong passwords per address+email, 10 bad agent tokens or 20 dead invite links per address,
+  // 5 reset emails per address and 3 per email (an inbox is not something to flood).
+  const limits = {
+    login: new RateLimiter(10, WINDOW),
+    token: new RateLimiter(10, WINDOW),
+    invite: new RateLimiter(20, WINDOW),
+    forgotIp: new RateLimiter(5, WINDOW),
+    forgotEmail: new RateLimiter(3, WINDOW),
+  };
   app.addHook("onClose", async () => Object.values(limits).forEach((l) => l.stop()));
   // An explicit setting wins. Otherwise Secure unless the hub only listens on this machine: guessing from
   // public_url missed hubs reached over plain LAN addresses, where a session cookie must not travel in clear.
@@ -229,7 +242,7 @@ export function buildHubServer(hub: Hub): FastifyInstance {
       maxAge: SESSION_DAYS * 86400,
     });
 
-  const PUBLIC = new Set(["/api/health", "/api/auth/login"]);
+  const PUBLIC = new Set(["/api/health", "/api/auth/login", "/api/auth/forgot"]);
 
   app.addHook("onRequest", async (req, reply) => {
     const allowed = store.settings.allowed_hosts;
@@ -327,7 +340,8 @@ export function buildHubServer(hub: Hub): FastifyInstance {
   // A meter, not a log: three months is plenty to answer "how much did this agent read last month?".
   store.forgetUsageBefore(new Date(Date.now() - 90 * 86400_000).toISOString());
 
-  app.get("/api/health", async () => ({ ok: true, mode: "hub", org: store.settings.org }));
+  // mail: whether the sign-in screen can offer "forgot password".
+  app.get("/api/health", async () => ({ ok: true, mode: "hub", org: store.settings.org, mail: mailReady(store) }));
 
   // ---- sign in -------------------------------------------------------------------------------
 
@@ -376,6 +390,27 @@ export function buildHubServer(hub: Hub): FastifyInstance {
     store.setPassword(u.id, await hashPassword(password));
     store.useInvite(token);
     setSession(req, reply, store.createSession(u.id));
+    return { ok: true };
+  });
+
+  // "Forgot password": a short-lived invite link to the address on file. The answer is the same whether the
+  // address has an account or not, so the form cannot be used to find out who does.
+  app.post("/api/auth/forgot", async (req) => {
+    const { email = "" } = (req.body ?? {}) as { email?: string };
+    if (!mailReady(store)) throw new CortexError("mail_off", "Email is not set up on this hub. Ask an organization admin for a new link.", 409);
+    const key = email.trim().toLowerCase();
+    if (limits.forgotIp.blocked(req.ip) || limits.forgotEmail.blocked(key))
+      throw new CortexError("rate_limited", "Too many requests. Try again in 15 minutes.", 429);
+    limits.forgotIp.fail(req.ip);
+    limits.forgotEmail.fail(key);
+    const user = key ? store.userByEmail(key) : null;
+    if (user && !user.disabled) {
+      const url = inviteUrl(store.createInvite(user.id, RESET_MINUTES * 60_000));
+      // Not awaited: how long the answer takes must not tell either.
+      hub.mailing = sendMail(store, resetMail({ to: user.email, name: user.name, org: store.settings.org, url, minutes: RESET_MINUTES }), hub.mailFetch).catch(
+        (e: Error) => console.error(`⚠ password reset email to ${user.id} failed: ${e.message}`),
+      );
+    }
     return { ok: true };
   });
 
@@ -496,6 +531,29 @@ export function buildHubServer(hub: Hub): FastifyInstance {
     restore: async (_req, by, name, opts) => ({ staged: await stageRestore(store, name, by, opts), can_restart: !!hub.restarter }),
     cancelRestore: () => cancelRestore(store.dir),
   });
+  // Email (src/hub/mail.ts): Resend key in, never back out; a test message goes to the admin asking.
+  app.get("/api/admin/mail", async (req) => {
+    orgAdmin(req);
+    return mailStatus(store);
+  });
+  app.put("/api/admin/mail", async (req) => {
+    orgAdmin(req);
+    return configureMail(store, (req.body ?? {}) as { provider?: string; from?: string; api_key?: string });
+  });
+  app.post("/api/admin/mail/test", async (req) => {
+    const admin = orgAdmin(req);
+    await sendMail(
+      store,
+      {
+        to: admin.email,
+        subject: `${store.settings.org} Cortex: test e-postası / test email`,
+        text: `Cortex bu hub'dan e-posta gönderebiliyor (${baseUrl()}).\nCortex can send email from this hub.`,
+      },
+      hub.mailFetch,
+    );
+    return { to: admin.email };
+  });
+
   // Restarts the hub process after answering, so the board can wait for it to come back.
   app.post("/api/admin/restart", async (req, reply) => {
     orgAdmin(req);
