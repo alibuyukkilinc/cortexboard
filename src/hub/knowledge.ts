@@ -1,4 +1,4 @@
-import { cpSync, existsSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import YAML from "yaml";
 import { basename, join, resolve } from "node:path";
 import { initProject } from "../core/init.js";
@@ -95,15 +95,34 @@ export interface RegisterInput {
 }
 
 // Registers a code folder as a hub project, creating its knowledge when asked. Used by the board and the CLI.
+// A project that is new to the hub (init) may not have its code on this machine yet: the folder is created
+// empty, and the code is cloned into it later (pulls skip it until it is a git repository).
 export async function registerProject(
   store: HubStore,
   input: RegisterInput,
-): Promise<{ id: string; name: string; path: string; where: KnowledgeWhere; created?: { dir: string; bootstrapTask: string | null } }> {
+): Promise<{
+  id: string;
+  name: string;
+  path: string;
+  where: KnowledgeWhere;
+  folderCreated: boolean;
+  created?: { dir: string; bootstrapTask: string | null };
+}> {
   const path = resolve(input.path.trim());
-  if (!existsSync(path)) throw new CortexError("invalid_project", `Folder not found: ${path}`, 400);
   const name = input.name?.trim() || basename(path);
   const id = projectId(input.id?.trim() || name);
+  if (!id) throw new CortexError("invalid_project", "Give the project a name.", 400);
   if (store.project(id)) throw new CortexError("conflict", `A project with id "${id}" already exists.`, 409);
+  let folderCreated = false;
+  if (!existsSync(path)) {
+    if (!input.init) throw new CortexError("invalid_project", `Folder not found: ${path}. Send init: true to create it for a new project.`, 400, { path });
+    try {
+      mkdirSync(path, { recursive: true });
+    } catch (e) {
+      throw new CortexError("invalid_project", `Could not create ${path}: ${(e as Error).message}`, 400, { path });
+    }
+    folderCreated = true;
+  } else if (!statSync(path).isDirectory()) throw new CortexError("invalid_project", `Not a folder: ${path}`, 400, { path });
 
   let where = knowledgeWhere(store.dir, { id, path });
   let created: { dir: string; bootstrapTask: string | null } | undefined;
@@ -116,7 +135,7 @@ export async function registerProject(
     created = { dir: r.dir, bootstrapTask: r.bootstrapTask };
   }
   store.addProject({ id, name, path });
-  return { id, name, path, where, created };
+  return { id, name, path, where, folderCreated, created };
 }
 
 // Moves a project's knowledge from <repo>/.cortex into the hub's folder. The search index is left behind (it is

@@ -611,7 +611,7 @@ export function buildHubServer(hub: Hub): FastifyInstance {
       knowledge: b.knowledge === "repo" ? "repo" : "hub",
     });
     store.setMember(r.id, admin.id, { role: "owner" });
-    return reply.code(201).send({ project: { ...store.project(r.id), knowledge: r.where } });
+    return reply.code(201).send({ project: { ...store.project(r.id), knowledge: r.where }, folder_created: r.folderCreated });
   });
   // Point a project at its code folder on this machine (a restored hub, a moved checkout). Knowledge held in the
   // hub's folder stays put; the code folder is where code links and pulls look.

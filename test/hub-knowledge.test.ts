@@ -80,6 +80,30 @@ test("hub knowledge: --in-repo keeps the old layout, and move-knowledge brings i
   }
 });
 
+test("hub knowledge: a new project whose code folder does not exist yet gets it created, empty", async () => {
+  const t = setup();
+  try {
+    const missing = join(t.root, "repos", "adminapp");
+    await assert.rejects(registerProject(t.store, { path: missing, name: "Admin App" }), /Folder not found/);
+    assert.ok(!existsSync(missing), "without init nothing is created");
+
+    const r = await registerProject(t.store, { path: missing, name: "Admin App", init: true, language: "en" });
+    assert.equal(r.folderCreated, true);
+    assert.equal(r.id, "admin-app");
+    assert.ok(existsSync(missing));
+    assert.ok(!existsSync(join(missing, ".cortex")), "the knowledge goes to the hub, the new folder stays empty");
+    assert.ok(existsSync(join(knowledgeDir(t.store.dir, "admin-app"), "cortex.config.yaml")));
+
+    const again = await registerProject(t.store, { path: t.code, init: true, language: "en" });
+    assert.equal(again.folderCreated, false, "an existing folder is used as it is");
+
+    writeFileSync(join(t.root, "file.txt"), "x");
+    await assert.rejects(registerProject(t.store, { path: join(t.root, "file.txt"), name: "F", init: true }), /Not a folder/);
+  } finally {
+    t.cleanup();
+  }
+});
+
 test("hub knowledge: a folder that already has .cortex is registered as it is", async () => {
   const t = setup();
   try {

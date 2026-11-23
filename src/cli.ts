@@ -446,6 +446,7 @@ async function hubCommand(sub: string | undefined, arg: string | undefined, v: R
           .filter(Boolean),
         knowledge: v["in-repo"] ? "repo" : "hub",
       });
+      if (r.folderCreated) console.log(`✔ Created the empty folder ${r.path}; clone the project's code into it when it exists.`);
       if (r.created)
         console.log(
           `✔ Created ${r.created.dir}. The first AI agent you connect finds the task that fills the knowledge tree in its inbox (${r.created.bootstrapTask}).`,
