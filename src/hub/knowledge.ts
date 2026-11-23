@@ -85,7 +85,7 @@ export async function commitKnowledge(dir: string, message = "Cortex: knowledge 
 }
 
 export interface RegisterInput {
-  path: string;
+  path?: string; // the code folder on this machine; none = the hub keeps the code in <hub>/code/<id>
   id?: string;
   name?: string;
   init?: boolean;
@@ -94,9 +94,14 @@ export interface RegisterInput {
   knowledge?: KnowledgeWhere; // where a new project's knowledge goes; default hub
 }
 
-// Registers a code folder as a hub project, creating its knowledge when asked. Used by the board and the CLI.
+// Where the hub keeps a project's code when nobody named a folder for it: next to its knowledge, filled by
+// connecting a git repository (gitSync.connectGit). Not part of backups: the code comes back from git.
+export const codeDir = (hubDir: string, id: string) => join(hubDir, "code", id);
+
+// Registers a project, creating its knowledge when asked. Used by the board and the CLI.
 // A project that is new to the hub (init) may not have its code on this machine yet: the folder is created
-// empty, and the code is cloned into it later (pulls skip it until it is a git repository).
+// empty, and the code is cloned into it later (pulls skip it until it is a git repository). With no folder
+// at all the hub picks one of its own, so adding a project never depends on what is on the server.
 export async function registerProject(
   store: HubStore,
   input: RegisterInput,
@@ -108,14 +113,16 @@ export async function registerProject(
   folderCreated: boolean;
   created?: { dir: string; bootstrapTask: string | null };
 }> {
-  const path = resolve(input.path.trim());
-  const name = input.name?.trim() || basename(path);
+  const given = input.path?.trim() ?? "";
+  const name = input.name?.trim() || (given ? basename(resolve(given)) : "");
   const id = projectId(input.id?.trim() || name);
   if (!id) throw new CortexError("invalid_project", "Give the project a name.", 400);
   if (store.project(id)) throw new CortexError("conflict", `A project with id "${id}" already exists.`, 409);
+  const path = given ? resolve(given) : codeDir(store.dir, id);
+  const init = input.init || !given; // a folder the hub picks is always a new project
   let folderCreated = false;
   if (!existsSync(path)) {
-    if (!input.init) throw new CortexError("invalid_project", `Folder not found: ${path}. Send init: true to create it for a new project.`, 400, { path });
+    if (!init) throw new CortexError("invalid_project", `Folder not found: ${path}. Send init: true to create it for a new project.`, 400, { path });
     try {
       mkdirSync(path, { recursive: true });
     } catch (e) {
@@ -127,7 +134,7 @@ export async function registerProject(
   let where = knowledgeWhere(store.dir, { id, path });
   let created: { dir: string; bootstrapTask: string | null } | undefined;
   if (!where) {
-    if (!input.init) throw new CortexError("not_initialized", "That folder has no .cortex yet. Send init: true to create one.", 400, { path });
+    if (!init) throw new CortexError("not_initialized", "That folder has no .cortex yet. Send init: true to create one.", 400, { path });
     where = input.knowledge ?? "hub";
     const dir = where === "hub" ? knowledgeDir(store.dir, id) : join(path, CORTEX_DIR);
     const r = initProject(path, name, { language: input.language, branches: input.branches, dir });

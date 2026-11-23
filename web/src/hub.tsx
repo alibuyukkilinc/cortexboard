@@ -482,7 +482,9 @@ type AdminProject = {
   members: number;
   exists: boolean;
   knowledge: "hub" | "repo" | null;
+  hub_folder: boolean; // the hub picked the code folder (<hub>/code/<id>)
   linked: string[];
+  git: { remote: string | null; auth: boolean; branch: string | null; waiting: boolean } | null;
   pull: PullResult | null;
 };
 
@@ -1236,6 +1238,7 @@ function ProjectsTab() {
   const [linking, setLinking] = useState<AdminProject | null>(null);
   const [pulling, setPulling] = useState<string | null>(null);
   const [moving, setMoving] = useState<AdminProject | null>(null);
+  const [gitting, setGitting] = useState<AdminProject | null>(null);
   const pull = async (p: AdminProject) => {
     setPulling(p.id);
     try {
@@ -1293,7 +1296,8 @@ function ProjectsTab() {
                     <div className="faint mono">{p.id}</div>
                   </td>
                   <td className="mono muted">
-                    {p.path} {!p.exists && <span className="chip danger">{t("hub.missing")}</span>}
+                    {p.hub_folder ? <span className="chip">{t("hub.folderOnHub")}</span> : p.path}{" "}
+                    {!p.exists && <span className="chip danger">{t("hub.missing")}</span>}
                     {p.knowledge && <span className="chip">{t(p.knowledge === "hub" ? "hub.knowledgeHub" : "hub.knowledgeRepo")}</span>}
                     <button className={`btn sm ${p.exists ? "ghost" : ""}`} onClick={() => setMoving(p)}>
                       {t("hub.changeFolder")}
@@ -1313,10 +1317,25 @@ function ProjectsTab() {
                     </div>
                   </td>
                   <td>
-                    <PullState r={p.pull} />
+                    <div className="git-cell">
+                      {p.git?.remote ? (
+                        <span className="mono muted" title={p.git.remote}>
+                          {p.git.remote.replace(/^[a-z]+:\/\/|\.git$/gi, "")}
+                          {p.git.branch && (
+                            <span className="chip mono">{p.git.waiting ? t("hub.gitWaiting").replace("{branch}", p.git.branch) : p.git.branch}</span>
+                          )}
+                        </span>
+                      ) : (
+                        <span className="faint">{t("hub.gitNone")}</span>
+                      )}
+                      <button className={`btn sm ${p.git?.remote ? "ghost" : ""}`} onClick={() => setGitting(p)}>
+                        {p.git?.remote ? t("hub.gitChange") : t("hub.gitConnect")}
+                      </button>
+                    </div>
+                    {p.git?.remote && <PullState r={p.pull} />}
                   </td>
                   <td className="actions">
-                    <button className="btn sm" disabled={pulling === p.id} onClick={() => void pull(p)}>
+                    <button className="btn sm" disabled={pulling === p.id || !p.git?.remote} onClick={() => void pull(p)}>
                       <Icon name="download" /> {t("hub.pullNow")}
                     </button>
                     <button className="btn sm ghost danger" onClick={() => void remove(p)}>
@@ -1331,6 +1350,7 @@ function ProjectsTab() {
       )}
       {adding && <AddProject onClose={() => setAdding(false)} onDone={() => (setAdding(false), projects.reload())} />}
       {moving && <FolderDialog project={moving} onClose={() => setMoving(null)} onDone={() => (setMoving(null), projects.reload())} />}
+      {gitting && <GitDialog project={gitting} onClose={() => setGitting(null)} onDone={() => (setGitting(null), projects.reload())} />}
       {linking && projects.data && (
         <LinksDialog project={linking} all={projects.data.projects} onClose={() => setLinking(null)} onDone={() => (setLinking(null), projects.reload())} />
       )}
@@ -1456,55 +1476,219 @@ function LinksDialog({ project, all, onClose, onDone }: { project: AdminProject;
   );
 }
 
+type GitConnect = { remote: string; branch: string | null; status: "connected" | "waiting"; kept: number; message: string };
+const gitFill = { autoComplete: "off", "data-1p-ignore": true, "data-lpignore": "true", spellCheck: false } as const;
+
+// What a connection did, in the board's language; the server's own sentence is the tooltip of the toast.
+function gitConnectedText(t: ReturnType<typeof useT>, r: GitConnect): string {
+  const head = r.status === "connected" ? t("hub.gitConnected").replace("{branch}", r.branch ?? "") : t("hub.gitConnectedWaiting");
+  return r.kept ? `${head} ${t("hub.gitKept").replace("{n}", String(r.kept))}` : head;
+}
+
+// Address, branch and token of a repository: the same fields when adding a project and when connecting one later.
+function GitFields({
+  id,
+  url,
+  setUrl,
+  branch,
+  setBranch,
+  token,
+  setToken,
+  hasToken,
+  autoFocus,
+  optional,
+}: {
+  id: string;
+  url: string;
+  setUrl: (v: string) => void;
+  branch: string;
+  setBranch: (v: string) => void;
+  token: string;
+  setToken: (v: string) => void;
+  hasToken?: boolean;
+  autoFocus?: boolean;
+  optional?: boolean; // adding a project: the repository can wait
+}) {
+  const t = useT();
+  const https = /^https?:\/\//i.test(url.trim());
+  return (
+    <>
+      <div className="field">
+        <label htmlFor={`${id}-url`}>{t(optional ? "hub.gitRepoOptional" : "hub.gitRepo")}</label>
+        {/* oxlint-disable-next-line jsx-a11y/no-autofocus -- the Git dialog exists to ask for this address */}
+        <input
+          id={`${id}-url`}
+          className="input mono"
+          autoFocus={autoFocus}
+          {...gitFill}
+          placeholder="https://github.com/acme/shop.git"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+        <span className="hint">{t(optional ? "hub.gitRepoHintLater" : "hub.gitRepoHint")}</span>
+      </div>
+      <div className="grid2">
+        <div className="field">
+          <label htmlFor={`${id}-branch`}>{t("hub.gitBranch")}</label>
+          <input id={`${id}-branch`} className="input mono" {...gitFill} placeholder="main" value={branch} onChange={(e) => setBranch(e.target.value)} />
+          <span className="hint">{t("hub.gitBranchHint")}</span>
+        </div>
+        <div className="field">
+          <label htmlFor={`${id}-token`}>{t("hub.gitToken")}</label>
+          <input
+            id={`${id}-token`}
+            className="input mono"
+            type="password"
+            {...gitFill}
+            autoComplete="new-password"
+            disabled={!!url.trim() && !https}
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+          />
+          <span className="hint">{hasToken ? t("hub.gitTokenKeep") : t("hub.gitTokenHint")}</span>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// A new project needs only a name. The hub keeps its code in a folder of its own unless one on the server is
+// named, and its repository can be connected now or later from the project list.
 function AddProject({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
   const t = useT();
+  const toast = useToast();
   const { lang } = useContext(LangContext);
-  const [path, setPath] = useState("");
   const [name, setName] = useState("");
-  const [init, setInit] = useState(true);
   const [language, setLanguage] = useState<string>(lang);
+  const [url, setUrl] = useState("");
+  const [branch, setBranch] = useState("");
+  const [token, setToken] = useState("");
+  const [path, setPath] = useState("");
   const [err, setErr] = useState<unknown>(null);
-  const save = async () => {
+  const [busy, setBusy] = useState(false);
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
     setErr(null);
+    setBusy(true);
     try {
-      await api("/api/admin/projects", { method: "POST", body: { path, name: name || undefined, init, language } });
+      const r = await api<{ git: GitConnect | null; git_error: string | null }>("/api/admin/projects", {
+        method: "POST",
+        body: {
+          name: name.trim(),
+          language,
+          init: true,
+          ...(path.trim() ? { path: path.trim() } : {}),
+          ...(url.trim() ? { git: { url: url.trim(), branch: branch.trim() || undefined, token: token.trim() || undefined } } : {}),
+        },
+      });
+      if (r.git_error) toast({ text: t("hub.projectAddedGitFailed").replace("{error}", r.git_error), error: true });
+      else toast({ text: r.git ? `${t("hub.projectAdded")} ${gitConnectedText(t, r.git)}` : t("hub.projectAdded") });
       onDone();
-    } catch (e) {
-      setErr(e);
+    } catch (x) {
+      setErr(x);
+    } finally {
+      setBusy(false);
     }
   };
   return (
     <Modal onClose={onClose} title={t("hub.addProject")}>
-      <ErrorBox error={err} />
-      <div className="field">
-        <label htmlFor="hub-hub-folder">{t("hub.folder")}</label>
-        <input id="hub-hub-folder" className="input mono" autoFocus placeholder="/srv/repos/shop" value={path} onChange={(e) => setPath(e.target.value)} />
-        <span className="hint">{t("hub.folderHint")}</span>
-      </div>
-      <div className="grid2">
-        <div className="field">
-          <label htmlFor="hub-hub-name-2">{t("hub.name")}</label>
-          <input id="hub-hub-name-2" className="input" value={name} onChange={(e) => setName(e.target.value)} />
+      <form onSubmit={(e) => void save(e)}>
+        <ErrorBox error={err} />
+        <div className="grid2">
+          <div className="field">
+            <label htmlFor="hub-add-name">{t("hub.name")}</label>
+            {/* oxlint-disable-next-line jsx-a11y/no-autofocus -- the dialog exists to ask for this name */}
+            <input id="hub-add-name" className="input" autoFocus required placeholder="Shop" value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="field">
+            <label htmlFor="hub-add-language">{t("hub.contentLanguage")}</label>
+            <select id="hub-add-language" className="select" value={language} onChange={(e) => setLanguage(e.target.value)}>
+              <option value="tr">Türkçe</option>
+              <option value="en">English</option>
+            </select>
+          </div>
         </div>
-        <div className="field">
-          <label htmlFor="hub-hub-contentlanguage">{t("hub.contentLanguage")}</label>
-          <select id="hub-hub-contentlanguage" className="select" value={language} onChange={(e) => setLanguage(e.target.value)}>
-            <option value="tr">Türkçe</option>
-            <option value="en">English</option>
-          </select>
+        <GitFields id="hub-add-git" url={url} setUrl={setUrl} branch={branch} setBranch={setBranch} token={token} setToken={setToken} optional />
+        <details className="more-options" open={!!path}>
+          <summary>{t("hub.folderOwn")}</summary>
+          <div className="field">
+            <label htmlFor="hub-add-folder">{t("hub.folder")}</label>
+            <input
+              id="hub-add-folder"
+              className="input mono"
+              {...gitFill}
+              placeholder="/srv/repos/shop"
+              value={path}
+              onChange={(e) => setPath(e.target.value)}
+            />
+            <span className="hint">{t("hub.folderHint")}</span>
+          </div>
+        </details>
+        <div className="modal-foot">
+          <button type="button" className="btn" onClick={onClose}>
+            {t("common.cancel")}
+          </button>
+          <button type="submit" className="btn primary" disabled={busy || !name.trim()}>
+            {t("hub.addProject")}
+          </button>
         </div>
-      </div>
-      <label htmlFor="hub-hub-createcortex" className="check">
-        <input id="hub-hub-createcortex" type="checkbox" checked={init} onChange={(e) => setInit(e.target.checked)} /> {t("hub.createCortex")}
-      </label>
-      <div className="modal-foot">
-        <button className="btn" onClick={onClose}>
-          {t("common.cancel")}
-        </button>
-        <button className="btn primary" disabled={!path.trim()} onClick={() => void save()}>
-          {t("hub.addProject")}
-        </button>
-      </div>
+      </form>
+    </Modal>
+  );
+}
+
+// Connects a project's folder to its repository, or changes the address, branch or token. The hub fetches and
+// follows the branch; it never commits, pushes or overwrites a file already in the folder.
+function GitDialog({ project, onClose, onDone }: { project: AdminProject; onClose: () => void; onDone: () => void }) {
+  const t = useT();
+  const toast = useToast();
+  const [url, setUrl] = useState(project.git?.remote ?? "");
+  const [branch, setBranch] = useState(project.git?.branch ?? "");
+  const [token, setToken] = useState("");
+  const [err, setErr] = useState<unknown>(null);
+  const [busy, setBusy] = useState(false);
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    setErr(null);
+    setBusy(true);
+    try {
+      const r = await api<{ result: GitConnect }>(`/api/admin/projects/${encodeURIComponent(project.id)}/git`, {
+        method: "PUT",
+        body: { url: url.trim(), branch: branch.trim() || undefined, token: token.trim() || undefined },
+      });
+      toast({ text: gitConnectedText(t, r.result) });
+      onDone();
+    } catch (x) {
+      setErr(x);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Modal onClose={onClose} title={t("hub.gitTitle").replace("{name}", project.name)}>
+      <form onSubmit={(e) => void save(e)}>
+        <ErrorBox error={err} />
+        <p className="muted mt-0">{t("hub.gitIntro")}</p>
+        <GitFields
+          id="hub-git"
+          url={url}
+          setUrl={setUrl}
+          branch={branch}
+          setBranch={setBranch}
+          token={token}
+          setToken={setToken}
+          hasToken={!!project.git?.auth && url.trim() === project.git.remote}
+          autoFocus
+        />
+        <div className="modal-foot">
+          <button type="button" className="btn" onClick={onClose}>
+            {t("common.cancel")}
+          </button>
+          <button type="submit" className="btn primary" disabled={busy || !url.trim()}>
+            {busy ? t("hub.gitConnecting") : t("hub.gitConnect")}
+          </button>
+        </div>
+      </form>
     </Modal>
   );
 }

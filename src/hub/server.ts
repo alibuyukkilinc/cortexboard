@@ -16,9 +16,9 @@ import { configureMail, mailReady, mailStatus, resetMail, sendMail } from "./mai
 import { RateLimiter } from "./limiter.js";
 import { HUMAN_KEY_HEADER, registerMcpHttp } from "./mcpHttp.js";
 import { registerOAuth } from "./oauth.js";
-import type { PullResult } from "./gitSync.js";
-import { pullProject } from "./gitSync.js";
-import { commitKnowledge, knowledgeDir, knowledgeWhere, openHubProject, readLinked, registerProject } from "./knowledge.js";
+import type { ConnectResult, PullResult } from "./gitSync.js";
+import { connectGit, gitInfo, pullProject, remoteAddress } from "./gitSync.js";
+import { codeDir, commitKnowledge, knowledgeDir, knowledgeWhere, openHubProject, readLinked, registerProject } from "./knowledge.js";
 import { saveLinked } from "../core/project.js";
 import type { BackupResult } from "./backup.js";
 import { cancelRestore, hubTarget, pendingRestore, stageRestore } from "./backup.js";
@@ -575,19 +575,25 @@ export function buildHubServer(hub: Hub): FastifyInstance {
   app.get("/api/admin/projects", async (req) => {
     orgAdmin(req);
     return {
-      projects: store.projects().map((p) => ({
-        ...p,
-        members: store.members(p.id).length,
-        exists: existsSync(p.path) && knowledgeWhere(store.dir, p) !== null,
-        knowledge: knowledgeWhere(store.dir, p),
-        linked: readLinked(store.dir, p),
-        pull: hub.pulls.get(p.id) ?? null,
-      })),
+      projects: await Promise.all(
+        store.projects().map(async (p) => ({
+          ...p,
+          members: store.members(p.id).length,
+          exists: existsSync(p.path) && knowledgeWhere(store.dir, p) !== null,
+          knowledge: knowledgeWhere(store.dir, p),
+          hub_folder: resolvePath(p.path) === resolvePath(codeDir(store.dir, p.id)),
+          linked: readLinked(store.dir, p),
+          git: await gitInfo(p.path),
+          pull: hub.pulls.get(p.id) ?? null,
+        })),
+      ),
       pull_minutes: store.settings.pull_minutes ?? 0,
     };
   });
-  // Register a code folder. Its knowledge is created on request (init: true), in the hub's folder unless
-  // knowledge: "repo" asks for <folder>/.cortex; a folder that already has .cortex keeps it there.
+  // Add a project. The folder is optional: without one the hub keeps the code in <hub>/code/<id>. Its knowledge
+  // is created on request (init: true, implied without a folder), in the hub's folder unless knowledge: "repo"
+  // asks for <folder>/.cortex; a folder that already has .cortex keeps it there. git: { url, branch?, token? }
+  // connects a repository right away; if that fails the project is still added and git_error says why.
   app.post("/api/admin/projects", async (req, reply) => {
     const admin = orgAdmin(req);
     const b = (req.body ?? {}) as {
@@ -598,9 +604,12 @@ export function buildHubServer(hub: Hub): FastifyInstance {
       language?: string;
       branches?: string[] | string;
       knowledge?: string;
+      git?: { url?: string; branch?: string; token?: string };
     };
-    if (!b.path?.trim()) throw new CortexError("invalid_project", "Send the project folder as path.", 400);
+    if (!b.path?.trim() && !b.name?.trim()) throw new CortexError("invalid_project", "Send the project's name (and its folder as path, if it has one).", 400);
     const branches = typeof b.branches === "string" ? b.branches.split(",") : b.branches;
+    const gitUrl = b.git?.url?.trim();
+    if (gitUrl) remoteAddress(gitUrl, b.git?.token); // a malformed address is refused before anything is created
     const r = await registerProject(store, {
       path: b.path,
       id: b.id,
@@ -611,7 +620,37 @@ export function buildHubServer(hub: Hub): FastifyInstance {
       knowledge: b.knowledge === "repo" ? "repo" : "hub",
     });
     store.setMember(r.id, admin.id, { role: "owner" });
-    return reply.code(201).send({ project: { ...store.project(r.id), knowledge: r.where }, folder_created: r.folderCreated });
+    let git: ConnectResult | undefined;
+    let gitError: string | undefined;
+    if (gitUrl) {
+      try {
+        git = await connectGit(r.path, { url: gitUrl, branch: b.git?.branch, token: b.git?.token });
+        hub.forget(r.id);
+        await hub.pull(r.id).catch(() => {});
+      } catch (e) {
+        gitError = (e as Error).message;
+      }
+    }
+    return reply
+      .code(201)
+      .send({ project: { ...store.project(r.id), knowledge: r.where }, folder_created: r.folderCreated, git: git ?? null, git_error: gitError ?? null });
+  });
+  // Connect (or reconnect) a project's folder to its git repository: origin is set and one branch followed;
+  // nothing is committed, pushed or overwritten. A repository that is still empty is attached on a later pull.
+  app.put("/api/admin/projects/:id/git", async (req) => {
+    orgAdmin(req);
+    const id = (req.params as Q).id!;
+    const p = store.project(id);
+    if (!p) throw new CortexError("not_found", `No project "${id}".`, 404);
+    const b = (req.body ?? {}) as { url?: string; branch?: string; token?: string };
+    if (!b.url?.trim())
+      throw new CortexError("invalid_request", "Send the repository's address as url.", 400, {
+        example: { url: "https://github.com/acme/shop.git", branch: "main" },
+      });
+    const result = await connectGit(p.path, { url: b.url, branch: b.branch, token: b.token });
+    hub.forget(id); // reopened against the new HEAD
+    const pull = await hub.pull(id).catch(() => null);
+    return { result, git: await gitInfo(p.path), pull };
   });
   // Point a project at its code folder on this machine (a restored hub, a moved checkout). Knowledge held in the
   // hub's folder stays put; the code folder is where code links and pulls look.

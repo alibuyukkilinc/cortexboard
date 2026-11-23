@@ -2506,6 +2506,29 @@ button.chip {
 .connect-paste[open] summary {
   margin-bottom: 6px;
 }
+/* Add project: the server folder is for the few projects whose code is already there. */
+.more-options {
+  margin-top: var(--space-2);
+}
+.more-options summary {
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+.more-options[open] summary {
+  margin-bottom: var(--space-2);
+}
+/* Projects → Git: the repository and its branch, with the button that connects or changes it. */
+.git-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.git-cell .chip {
+  margin-left: 6px;
+}
 /* Removing Cortex from Claude Code on a computer (Organization → AI agents): numbered commands in one list. */
 .disconnect {
   margin-top: var(--space-3);
