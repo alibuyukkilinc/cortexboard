@@ -5,6 +5,22 @@ and the project uses [semantic versioning](https://semver.org/) (while it is 0.x
 
 ## [Unreleased]
 
+### Added
+
+- **Add a hub project with just a name, and connect its Git repository from the board.** The server folder
+  is optional: without one the hub keeps the code in `<hub>/code/<id>` (not backed up; it comes from git).
+  A repository is connected in the Add project dialog or later from the Git column of Organization →
+  Projects (`PUT /api/admin/projects/:id/git`). The hub sets `origin`, fetches and follows one branch, the
+  repository's default unless given. It never commits, pushes or overwrites a file: what the folder already
+  has stays, what it lacks is written. A repository that is still empty is attached by a later pull once
+  its branch is pushed. A private https repository takes a read token, which never shows on the board or
+  in a log.
+
+### Fixed
+
+- **Adding a hub project no longer fails with "Folder not found"** when its code is not on the server yet: a
+  new project's folder is created.
+
 ## [0.6.1] - 2026-09-30
 
 ### Fixed
